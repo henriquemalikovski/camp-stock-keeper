@@ -1,13 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { InventoryItem, NIVEIS, TIPOS, RAMOS, Nivel, Tipo, Ramo } from "@/types/inventory";
+import {
+  InventoryItem,
+  NIVEIS,
+  TIPOS,
+  RAMOS,
+  Nivel,
+  Tipo,
+  Ramo,
+} from "@/types/inventory";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Save, ArrowLeft, Package } from "lucide-react";
@@ -15,22 +29,22 @@ import { Save, ArrowLeft, Package } from "lucide-react";
 const CadastroItem = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const [formData, setFormData] = useState({
     nivel: "" as Nivel | "",
     tipo: "" as Tipo | "",
     descricao: "",
     quantidade: "",
     valorUnitario: "",
-    ramo: "" as Ramo | ""
+    ramo: "" as Ramo | "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ 
-      ...prev, 
-      [field]: value 
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
     }));
   };
 
@@ -40,11 +54,17 @@ const CadastroItem = () => {
 
     try {
       // Validações
-      if (!formData.tipo || !formData.descricao || !formData.quantidade || !formData.valorUnitario || !formData.ramo) {
+      if (
+        !formData.tipo ||
+        !formData.descricao ||
+        !formData.quantidade ||
+        !formData.valorUnitario ||
+        !formData.ramo
+      ) {
         toast({
           title: "Erro de Validação",
           description: "Por favor, preencha todos os campos obrigatórios.",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
@@ -54,44 +74,48 @@ const CadastroItem = () => {
 
       if (quantidade <= 0 || valorUnitario <= 0) {
         toast({
-          title: "Erro de Validação", 
-          description: "Quantidade e valor unitário devem ser maiores que zero.",
-          variant: "destructive"
+          title: "Erro de Validação",
+          description:
+            "Quantidade e valor unitário devem ser maiores que zero.",
+          variant: "destructive",
         });
         return;
       }
 
+      const valorTotal = quantidade * valorUnitario;
       const newItem = {
-        nivel: formData.nivel || 'Não Tem',
+        nivel: formData.nivel || "Não Tem",
         tipo: formData.tipo as Tipo,
         descricao: formData.descricao,
         quantidade,
         valor_unitario: valorUnitario,
-        ramo: formData.ramo as Ramo
+        valor_total: valorTotal,
+        ramo: formData.ramo as Ramo,
       };
 
       // Salvar no Supabase
       const { data, error } = await supabase
-        .from('inventory_items')
+        .from("inventory_items")
         .insert([newItem])
         .select();
 
       if (error) {
-        console.error('Erro ao salvar no banco:', error);
+        console.error("Erro ao salvar no banco:", error);
         toast({
           title: "Erro ao Salvar",
-          description: "Ocorreu um erro ao salvar no banco de dados: " + error.message,
-          variant: "destructive"
+          description:
+            "Ocorreu um erro ao salvar no banco de dados: " + error.message,
+          variant: "destructive",
         });
         return;
       }
 
       console.log("Item salvo no banco:", data);
-      
+
       toast({
         title: "Item Cadastrado",
         description: "O item foi adicionado ao estoque com sucesso!",
-        className: "bg-scout-green text-white"
+        className: "bg-scout-green text-white",
       });
 
       // Limpar formulário
@@ -101,40 +125,40 @@ const CadastroItem = () => {
         descricao: "",
         quantidade: "",
         valorUnitario: "",
-        ramo: ""
+        ramo: "",
       });
-
     } catch (error) {
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao cadastrar o item. Tente novamente.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const valorTotal = formData.quantidade && formData.valorUnitario 
-    ? parseInt(formData.quantidade) * parseFloat(formData.valorUnitario)
-    : 0;
+  const valorTotal =
+    formData.quantidade && formData.valorUnitario
+      ? parseInt(formData.quantidade) * parseFloat(formData.valorUnitario)
+      : 0;
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value);
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-3 mb-8">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => navigate("/")}
               className="flex items-center gap-2"
@@ -162,13 +186,20 @@ const CadastroItem = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="tipo">Tipo *</Label>
-                    <Select value={formData.tipo} onValueChange={(value) => handleInputChange("tipo", value)}>
+                    <Select
+                      value={formData.tipo}
+                      onValueChange={(value) =>
+                        handleInputChange("tipo", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                       <SelectContent>
-                        {TIPOS.map(tipo => (
-                          <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                        {TIPOS.map((tipo) => (
+                          <SelectItem key={tipo} value={tipo}>
+                            {tipo}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -176,13 +207,20 @@ const CadastroItem = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="nivel">Nível</Label>
-                    <Select value={formData.nivel} onValueChange={(value) => handleInputChange("nivel", value)}>
+                    <Select
+                      value={formData.nivel}
+                      onValueChange={(value) =>
+                        handleInputChange("nivel", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o nível" />
                       </SelectTrigger>
                       <SelectContent>
-                        {NIVEIS.map(nivel => (
-                          <SelectItem key={nivel} value={nivel}>{nivel}</SelectItem>
+                        {NIVEIS.map((nivel) => (
+                          <SelectItem key={nivel} value={nivel}>
+                            {nivel}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -195,20 +233,27 @@ const CadastroItem = () => {
                     id="descricao"
                     placeholder="Digite a descrição do item..."
                     value={formData.descricao}
-                    onChange={(e) => handleInputChange("descricao", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("descricao", e.target.value)
+                    }
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="ramo">Ramo *</Label>
-                  <Select value={formData.ramo} onValueChange={(value) => handleInputChange("ramo", value)}>
+                  <Select
+                    value={formData.ramo}
+                    onValueChange={(value) => handleInputChange("ramo", value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o ramo" />
                     </SelectTrigger>
                     <SelectContent>
-                      {RAMOS.map(ramo => (
-                        <SelectItem key={ramo} value={ramo}>{ramo}</SelectItem>
+                      {RAMOS.map((ramo) => (
+                        <SelectItem key={ramo} value={ramo}>
+                          {ramo}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -223,7 +268,9 @@ const CadastroItem = () => {
                       min="1"
                       placeholder="0"
                       value={formData.quantidade}
-                      onChange={(e) => handleInputChange("quantidade", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("quantidade", e.target.value)
+                      }
                     />
                   </div>
 
@@ -236,7 +283,9 @@ const CadastroItem = () => {
                       min="0.01"
                       placeholder="0,00"
                       value={formData.valorUnitario}
-                      onChange={(e) => handleInputChange("valorUnitario", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("valorUnitario", e.target.value)
+                      }
                     />
                   </div>
 
@@ -251,17 +300,17 @@ const CadastroItem = () => {
                 </div>
 
                 <div className="flex gap-4 pt-6">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={isSubmitting}
                     className="flex-1 bg-scout-green hover:bg-scout-green-light"
                   >
                     <Save className="w-4 h-4 mr-2" />
                     {isSubmitting ? "Salvando..." : "Cadastrar Item"}
                   </Button>
-                  
-                  <Button 
-                    type="button" 
+
+                  <Button
+                    type="button"
                     variant="outline"
                     onClick={() => navigate("/")}
                   >
