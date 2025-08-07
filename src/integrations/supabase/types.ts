@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      inventory_items: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          nivel: string
+          quantidade: number
+          ramo: string
+          tipo: string
+          updated_at: string
+          valor_total: number
+          valor_unitario: number
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          nivel: string
+          quantidade?: number
+          ramo: string
+          tipo: string
+          updated_at?: string
+          valor_total: number
+          valor_unitario: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          nivel?: string
+          quantidade?: number
+          ramo?: string
+          tipo?: string
+          updated_at?: string
+          valor_total?: number
+          valor_unitario?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
