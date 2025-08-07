@@ -49,7 +49,7 @@ const sampleData: InventoryItem[] = [
 const Inventory = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [items] = useState<InventoryItem[]>(sampleData);
+  const [items, setItems] = useState<InventoryItem[]>(sampleData);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("");
   const [filterRamo, setFilterRamo] = useState<string>("");
