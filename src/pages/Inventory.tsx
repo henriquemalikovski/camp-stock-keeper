@@ -50,8 +50,8 @@ const Inventory = () => {
   const filteredItems = useMemo(() => {
     return items.filter(item => {
       const matchesSearch = item.descricao.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesTipo = !filterTipo || item.tipo === filterTipo;
-      const matchesRamo = !filterRamo || item.ramo === filterRamo;
+      const matchesTipo = !filterTipo || filterTipo === "all" || item.tipo === filterTipo;
+      const matchesRamo = !filterRamo || filterRamo === "all" || item.ramo === filterRamo;
       
       return matchesSearch && matchesTipo && matchesRamo;
     });
@@ -160,7 +160,7 @@ const Inventory = () => {
                     <SelectValue placeholder="Todos os tipos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os tipos</SelectItem>
+                    <SelectItem value="all">Todos os tipos</SelectItem>
                     {TIPOS.map(tipo => (
                       <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
                     ))}
@@ -175,7 +175,7 @@ const Inventory = () => {
                     <SelectValue placeholder="Todos os ramos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os ramos</SelectItem>
+                    <SelectItem value="all">Todos os ramos</SelectItem>
                     {RAMOS.map(ramo => (
                       <SelectItem key={ramo} value={ramo}>{ramo}</SelectItem>
                     ))}
