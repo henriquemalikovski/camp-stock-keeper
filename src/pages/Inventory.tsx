@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { InventoryItem, TIPOS, RAMOS } from "@/types/inventory";
 import Header from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingUp, Package, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Search, TrendingUp, Package, DollarSign, Edit, Trash2 } from "lucide-react";
 
 // Dados de exemplo
 const sampleData: InventoryItem[] = [
@@ -43,6 +47,8 @@ const sampleData: InventoryItem[] = [
 ];
 
 const Inventory = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [items] = useState<InventoryItem[]>(sampleData);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("");
@@ -86,6 +92,20 @@ const Inventory = () => {
     return colors[ramo] || 'bg-gray-500 text-white';
   };
 
+  const handleEdit = (item: InventoryItem) => {
+    // Por enquanto, apenas navega para a página de cadastro
+    // Futuramente, pode passar o ID do item para edição
+    navigate(`/cadastro?edit=${item.id}`);
+  };
+
+  const handleDelete = (item: InventoryItem) => {
+    setItems(prevItems => prevItems.filter(i => i.id !== item.id));
+    toast({
+      title: "Item Excluído",
+      description: `O item "${item.descricao}" foi removido do estoque.`,
+      className: "bg-red-500 text-white"
+    });
+  };
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -220,6 +240,7 @@ const Inventory = () => {
                     <TableHead className="text-center">Quantidade</TableHead>
                     <TableHead className="text-right">Valor Unitário</TableHead>
                     <TableHead className="text-right">Valor Total</TableHead>
+                    <TableHead className="text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -251,6 +272,48 @@ const Inventory = () => {
                       </TableCell>
                       <TableCell className="text-right font-bold text-scout-green">
                         {formatCurrency(item.valorTotal)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(item)}
+                            className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir o item "{item.descricao}"? 
+                                  Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(item)}
+                                  className="bg-red-500 hover:bg-red-600"
+                                >
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
