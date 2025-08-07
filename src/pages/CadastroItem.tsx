@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { InventoryItem, NIVEIS, TIPOS, RAMOS, Nivel, Tipo, Ramo } from "@/types/inventory";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,19 +61,32 @@ const CadastroItem = () => {
         return;
       }
 
-      const newItem: InventoryItem = {
-        id: crypto.randomUUID(),
+      const newItem = {
         nivel: formData.nivel || 'Não Tem',
         tipo: formData.tipo as Tipo,
         descricao: formData.descricao,
         quantidade,
-        valorUnitario,
-        valorTotal: quantidade * valorUnitario,
+        valor_unitario: valorUnitario,
         ramo: formData.ramo as Ramo
       };
 
-      // Aqui você salvaria no backend ou localStorage
-      console.log("Novo item:", newItem);
+      // Salvar no Supabase
+      const { data, error } = await supabase
+        .from('inventory_items')
+        .insert([newItem])
+        .select();
+
+      if (error) {
+        console.error('Erro ao salvar no banco:', error);
+        toast({
+          title: "Erro ao Salvar",
+          description: "Ocorreu um erro ao salvar no banco de dados: " + error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log("Item salvo no banco:", data);
       
       toast({
         title: "Item Cadastrado",

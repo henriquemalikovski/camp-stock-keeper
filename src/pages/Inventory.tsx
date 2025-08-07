@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { InventoryItem, TIPOS, RAMOS } from "@/types/inventory";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,47 +14,62 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { Search, TrendingUp, Package, DollarSign, Edit, Trash2 } from "lucide-react";
 
-// Dados de exemplo
-const sampleData: InventoryItem[] = [
-  {
-    id: "1",
-    nivel: "Nivel 1",
-    tipo: "Distintivo de Progressão",
-    descricao: "Distintivo de Progressão Lobinho - Pré-requisitos",
-    quantidade: 25,
-    valorUnitario: 12.50,
-    valorTotal: 312.50,
-    ramo: "Lobinho"
-  },
-  {
-    id: "2", 
-    nivel: "Não Tem",
-    tipo: "Arganel",
-    descricao: "Arganel Escoteiro do Mar",
-    quantidade: 15,
-    valorUnitario: 8.00,
-    valorTotal: 120.00,
-    ramo: "Escoteiro"
-  },
-  {
-    id: "3",
-    nivel: "Nivel 2",
-    tipo: "Distintivo Especialidade",
-    descricao: "Especialidade Acampamento",
-    quantidade: 30,
-    valorUnitario: 5.50,
-    valorTotal: 165.00,
-    ramo: "Todos"
-  }
-];
-
 const Inventory = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [items, setItems] = useState<InventoryItem[]>(sampleData);
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("");
   const [filterRamo, setFilterRamo] = useState<string>("");
+
+  // Carregar dados do Supabase
+  useEffect(() => {
+    loadItems();
+  }, []);
+
+  const loadItems = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('inventory_items')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao carregar itens:', error);
+        toast({
+          title: "Erro ao Carregar",
+          description: "Não foi possível carregar os itens do banco de dados.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Converter os dados do banco para o formato esperado
+      const formattedItems: InventoryItem[] = data.map(item => ({
+        id: item.id,
+        nivel: item.nivel,
+        tipo: item.tipo,
+        descricao: item.descricao,
+        quantidade: item.quantidade,
+        valorUnitario: item.valor_unitario,
+        valorTotal: item.valor_total,
+        ramo: item.ramo
+      }));
+
+      setItems(formattedItems);
+    } catch (error) {
+      console.error('Erro inesperado:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro inesperado ao carregar os dados.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredItems = useMemo(() => {
     return items.filter(item => {
@@ -98,14 +115,40 @@ const Inventory = () => {
     navigate(`/cadastro?edit=${item.id}`);
   };
 
-  const handleDelete = (item: InventoryItem) => {
-    setItems(prevItems => prevItems.filter(i => i.id !== item.id));
-    toast({
-      title: "Item Excluído",
-      description: `O item "${item.descricao}" foi removido do estoque.`,
-      className: "bg-red-500 text-white"
-    });
+  const handleDelete = async (item: InventoryItem) => {
+    try {
+      const { error } = await supabase
+        .from('inventory_items')
+        .delete()
+        .eq('id', item.id);
+
+      if (error) {
+        console.error('Erro ao excluir item:', error);
+        toast({
+          title: "Erro ao Excluir",
+          description: "Não foi possível excluir o item do banco de dados.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Remover da lista local
+      setItems(prevItems => prevItems.filter(i => i.id !== item.id));
+      toast({
+        title: "Item Excluído",
+        description: `O item "${item.descricao}" foi removido do estoque.`,
+        className: "bg-red-500 text-white"
+      });
+    } catch (error) {
+      console.error('Erro inesperado ao excluir:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro inesperado ao excluir o item.",
+        variant: "destructive"
+      });
+    }
   };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -225,10 +268,16 @@ const Inventory = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="w-5 h-5" />
-              Lista de Itens ({filteredItems.length})
+              Lista de Itens ({loading ? "Carregando..." : filteredItems.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-scout-green mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Carregando itens...</p>
+              </div>
+            ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -320,8 +369,9 @@ const Inventory = () => {
                 </TableBody>
               </Table>
             </div>
+            )}
 
-            {filteredItems.length === 0 && (
+            {!loading && filteredItems.length === 0 && (
               <div className="text-center py-12">
                 <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-muted-foreground mb-2">
