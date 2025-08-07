@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { InventoryItem, TIPOS, RAMOS } from "@/types/inventory";
 import Header from "@/components/layout/Header";
-import InventoryCard from "@/components/inventory/InventoryCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Search, TrendingUp, Package, DollarSign } from "lucide-react";
 
 // Dados de exemplo
@@ -70,6 +71,19 @@ const Inventory = () => {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const getRamoColor = (ramo: string) => {
+    const colors: Record<string, string> = {
+      'Lobinho': 'bg-yellow-500 text-white',
+      'Escoteiro': 'bg-green-500 text-white', 
+      'Sênior': 'bg-red-500 text-white',
+      'Pioneiro': 'bg-blue-500 text-white',
+      'Jovens': 'bg-purple-500 text-white',
+      'Escotista': 'bg-gray-500 text-white',
+      'Todos': 'bg-scout-brown text-white'
+    };
+    return colors[ramo] || 'bg-gray-500 text-white';
   };
 
   return (
@@ -186,24 +200,77 @@ const Inventory = () => {
           </CardContent>
         </Card>
 
-        {/* Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map(item => (
-            <InventoryCard key={item.id} item={item} />
-          ))}
-        </div>
+        {/* Items Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Lista de Itens ({filteredItems.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Nível</TableHead>
+                    <TableHead>Ramo</TableHead>
+                    <TableHead className="text-center">Quantidade</TableHead>
+                    <TableHead className="text-right">Valor Unitário</TableHead>
+                    <TableHead className="text-right">Valor Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredItems.map(item => (
+                    <TableRow key={item.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">
+                        {item.descricao}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {item.tipo}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">
+                          {item.nivel}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getRamoColor(item.ramo)} variant="secondary">
+                          {item.ramo}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center font-semibold">
+                        {item.quantidade}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(item.valorUnitario)}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-scout-green">
+                        {formatCurrency(item.valorTotal)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
 
-        {filteredItems.length === 0 && (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-muted-foreground mb-2">
-              Nenhum item encontrado
-            </h3>
-            <p className="text-muted-foreground">
-              Tente ajustar os filtros ou adicione novos itens ao estoque.
-            </p>
-          </div>
-        )}
+            {filteredItems.length === 0 && (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                  Nenhum item encontrado
+                </h3>
+                <p className="text-muted-foreground">
+                  Tente ajustar os filtros ou adicione novos itens ao estoque.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
