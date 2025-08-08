@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   InventoryItem,
   NIVEIS,
@@ -29,6 +29,8 @@ import { Save, ArrowLeft, Package } from "lucide-react";
 const CadastroItem = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("edit");
 
   const [formData, setFormData] = useState({
     nivel: "" as Nivel | "",
@@ -40,6 +42,57 @@ const CadastroItem = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Carregar item para edição
+  useEffect(() => {
+    if (editId) {
+      loadItemForEdit(editId);
+      setIsEditing(true);
+    }
+  }, [editId]);
+
+  const loadItemForEdit = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from("inventory_items")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("Erro ao carregar item:", error);
+        toast({
+          title: "Erro ao Carregar",
+          description: "Não foi possível carregar o item para edição.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
+
+      setFormData({
+        nivel: data.nivel as Nivel,
+        tipo: data.tipo as Tipo,
+        descricao: data.descricao,
+        quantidade: data.quantidade.toString(),
+        valorUnitario: data.valor_unitario.toString(),
+        ramo: data.ramo as Ramo,
+      });
+    } catch (error) {
+      console.error("Erro inesperado:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro inesperado ao carregar o item.",
+        variant: "destructive",
+      });
+      navigate("/");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -94,10 +147,19 @@ const CadastroItem = () => {
       };
 
       // Salvar no Supabase
-      const { data, error } = await supabase
-        .from("inventory_items")
-        .insert([newItem])
-        .select();
+      let data, error;
+      if (isEditing && editId) {
+        ({ data, error } = await supabase
+          .from("inventory_items")
+          .update(newItem)
+          .eq("id", editId)
+          .select());
+      } else {
+        ({ data, error } = await supabase
+          .from("inventory_items")
+          .insert([newItem])
+          .select());
+      }
 
       if (error) {
         console.error("Erro ao salvar no banco:", error);
@@ -113,10 +175,17 @@ const CadastroItem = () => {
       console.log("Item salvo no banco:", data);
 
       toast({
-        title: "Item Cadastrado",
-        description: "O item foi adicionado ao estoque com sucesso!",
+        title: isEditing ? "Item Atualizado" : "Item Cadastrado",
+        description: isEditing 
+          ? "O item foi atualizado com sucesso!" 
+          : "O item foi adicionado ao estoque com sucesso!",
         className: "bg-scout-green text-white",
       });
+
+      if (isEditing) {
+        navigate("/");
+        return;
+      }
 
       // Limpar formulário
       setFormData({
@@ -169,10 +238,12 @@ const CadastroItem = () => {
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
                 <Package className="w-6 h-6 text-scout-green" />
-                Cadastrar Novo Item
+                {isEditing ? "Editar Item" : "Cadastrar Novo Item"}
               </h1>
               <p className="text-muted-foreground">
-                Adicione um novo item ao estoque do grupo escoteiro
+                {isEditing 
+                  ? "Edite as informações do item do estoque" 
+                  : "Adicione um novo item ao estoque do grupo escoteiro"}
               </p>
             </div>
           </div>
@@ -182,6 +253,12 @@ const CadastroItem = () => {
               <CardTitle>Informações do Item</CardTitle>
             </CardHeader>
             <CardContent>
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-scout-green mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Carregando item...</p>
+                </div>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -306,7 +383,11 @@ const CadastroItem = () => {
                     className="flex-1 bg-scout-green hover:bg-scout-green-light"
                   >
                     <Save className="w-4 h-4 mr-2" />
-                    {isSubmitting ? "Salvando..." : "Cadastrar Item"}
+                    {isSubmitting 
+                      ? "Salvando..." 
+                      : isEditing 
+                        ? "Atualizar Item" 
+                        : "Cadastrar Item"}
                   </Button>
 
                   <Button
@@ -318,6 +399,7 @@ const CadastroItem = () => {
                   </Button>
                 </div>
               </form>
+              )}
             </CardContent>
           </Card>
         </div>

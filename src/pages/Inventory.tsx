@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { InventoryItem, TIPOS, RAMOS } from "@/types/inventory";
+import { InventoryItem, TIPOS, RAMOS, Nivel, Tipo, Ramo } from "@/types/inventory";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
@@ -79,13 +79,13 @@ const Inventory = () => {
       // Converter os dados do banco para o formato esperado
       const formattedItems: InventoryItem[] = data.map((item) => ({
         id: item.id,
-        nivel: item.nivel,
-        tipo: item.tipo,
+        nivel: item.nivel as Nivel,
+        tipo: item.tipo as Tipo,
         descricao: item.descricao,
         quantidade: item.quantidade,
         valorUnitario: item.valor_unitario,
         valorTotal: item.valor_total,
-        ramo: item.ramo,
+        ramo: item.ramo as Ramo,
       }));
 
       setItems(formattedItems);
