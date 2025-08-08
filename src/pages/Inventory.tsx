@@ -5,14 +5,44 @@ import { InventoryItem, TIPOS, RAMOS } from "@/types/inventory";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Search, TrendingUp, Package, DollarSign, Edit, Trash2 } from "lucide-react";
+import {
+  Search,
+  TrendingUp,
+  Package,
+  DollarSign,
+  Edit,
+  Trash2,
+} from "lucide-react";
 
 const Inventory = () => {
   const navigate = useNavigate();
@@ -32,22 +62,22 @@ const Inventory = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('inventory_items')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("inventory_items")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error('Erro ao carregar itens:', error);
+        console.error("Erro ao carregar itens:", error);
         toast({
           title: "Erro ao Carregar",
           description: "Não foi possível carregar os itens do banco de dados.",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
 
       // Converter os dados do banco para o formato esperado
-      const formattedItems: InventoryItem[] = data.map(item => ({
+      const formattedItems: InventoryItem[] = data.map((item) => ({
         id: item.id,
         nivel: item.nivel,
         tipo: item.tipo,
@@ -55,16 +85,16 @@ const Inventory = () => {
         quantidade: item.quantidade,
         valorUnitario: item.valor_unitario,
         valorTotal: item.valor_total,
-        ramo: item.ramo
+        ramo: item.ramo,
       }));
 
       setItems(formattedItems);
     } catch (error) {
-      console.error('Erro inesperado:', error);
+      console.error("Erro inesperado:", error);
       toast({
         title: "Erro",
         description: "Ocorreu um erro inesperado ao carregar os dados.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -72,11 +102,15 @@ const Inventory = () => {
   };
 
   const filteredItems = useMemo(() => {
-    return items.filter(item => {
-      const matchesSearch = item.descricao.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesTipo = !filterTipo || filterTipo === "all" || item.tipo === filterTipo;
-      const matchesRamo = !filterRamo || filterRamo === "all" || item.ramo === filterRamo;
-      
+    return items.filter((item) => {
+      const matchesSearch = item.descricao
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesTipo =
+        !filterTipo || filterTipo === "all" || item.tipo === filterTipo;
+      const matchesRamo =
+        !filterRamo || filterRamo === "all" || item.ramo === filterRamo;
+
       return matchesSearch && matchesTipo && matchesRamo;
     });
   }, [items, searchTerm, filterTipo, filterRamo]);
@@ -84,29 +118,29 @@ const Inventory = () => {
   const statistics = useMemo(() => {
     const totalItems = items.reduce((sum, item) => sum + item.quantidade, 0);
     const totalValue = items.reduce((sum, item) => sum + item.valorTotal, 0);
-    const uniqueTypes = new Set(items.map(item => item.tipo)).size;
-    
+    const uniqueTypes = new Set(items.map((item) => item.tipo)).size;
+
     return { totalItems, totalValue, uniqueTypes, totalProducts: items.length };
   }, [items]);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value);
   };
 
   const getRamoColor = (ramo: string) => {
     const colors: Record<string, string> = {
-      'Lobinho': 'bg-yellow-500 text-white',
-      'Escoteiro': 'bg-green-500 text-white', 
-      'Sênior': 'bg-red-500 text-white',
-      'Pioneiro': 'bg-blue-500 text-white',
-      'Jovens': 'bg-purple-500 text-white',
-      'Escotista': 'bg-gray-500 text-white',
-      'Todos': 'bg-scout-brown text-white'
+      Lobinho: "bg-lobinho text-white",
+      Escoteiro: "bg-escoteiro text-white",
+      Sênior: "bg-senior text-white",
+      Pioneiro: "bg-pioneiro text-white",
+      Jovens: "bg-jovens text-white",
+      Escotista: "bg-escotista text-white",
+      Todos: "bg-todos text-white",
     };
-    return colors[ramo] || 'bg-gray-500 text-white';
+    return colors[ramo] || "bg-gray-500 text-white";
   };
 
   const handleEdit = (item: InventoryItem) => {
@@ -118,33 +152,33 @@ const Inventory = () => {
   const handleDelete = async (item: InventoryItem) => {
     try {
       const { error } = await supabase
-        .from('inventory_items')
+        .from("inventory_items")
         .delete()
-        .eq('id', item.id);
+        .eq("id", item.id);
 
       if (error) {
-        console.error('Erro ao excluir item:', error);
+        console.error("Erro ao excluir item:", error);
         toast({
           title: "Erro ao Excluir",
           description: "Não foi possível excluir o item do banco de dados.",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
 
       // Remover da lista local
-      setItems(prevItems => prevItems.filter(i => i.id !== item.id));
+      setItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
       toast({
         title: "Item Excluído",
         description: `O item "${item.descricao}" foi removido do estoque.`,
-        className: "bg-red-500 text-white"
+        className: "bg-red-500 text-white",
       });
     } catch (error) {
-      console.error('Erro inesperado ao excluir:', error);
+      console.error("Erro inesperado ao excluir:", error);
       toast({
         title: "Erro",
         description: "Ocorreu um erro inesperado ao excluir o item.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -152,7 +186,7 @@ const Inventory = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -164,10 +198,12 @@ const Inventory = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-scout-green">{statistics.totalProducts}</div>
+              <div className="text-2xl font-bold text-scout-green">
+                {statistics.totalProducts}
+              </div>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2 text-blue-600">
@@ -176,10 +212,12 @@ const Inventory = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{statistics.totalItems}</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {statistics.totalItems}
+              </div>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border-purple-500/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2 text-purple-600">
@@ -188,10 +226,12 @@ const Inventory = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{statistics.uniqueTypes}</div>
+              <div className="text-2xl font-bold text-purple-600">
+                {statistics.uniqueTypes}
+              </div>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-gradient-to-br from-scout-brown/10 to-scout-brown-light/10 border-scout-brown/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2 text-scout-brown">
@@ -218,7 +258,9 @@ const Inventory = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Buscar por descrição</label>
+                <label className="text-sm font-medium">
+                  Buscar por descrição
+                </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -229,7 +271,7 @@ const Inventory = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Filtrar por Tipo</label>
                 <Select value={filterTipo} onValueChange={setFilterTipo}>
@@ -238,13 +280,15 @@ const Inventory = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os tipos</SelectItem>
-                    {TIPOS.map(tipo => (
-                      <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                    {TIPOS.map((tipo) => (
+                      <SelectItem key={tipo} value={tipo}>
+                        {tipo}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Filtrar por Ramo</label>
                 <Select value={filterRamo} onValueChange={setFilterRamo}>
@@ -253,8 +297,10 @@ const Inventory = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os ramos</SelectItem>
-                    {RAMOS.map(ramo => (
-                      <SelectItem key={ramo} value={ramo}>{ramo}</SelectItem>
+                    {RAMOS.map((ramo) => (
+                      <SelectItem key={ramo} value={ramo}>
+                        {ramo}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -268,7 +314,8 @@ const Inventory = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="w-5 h-5" />
-              Lista de Itens ({loading ? "Carregando..." : filteredItems.length})
+              Lista de Itens ({loading ? "Carregando..." : filteredItems.length}
+              )
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -278,97 +325,105 @@ const Inventory = () => {
                 <p className="text-muted-foreground">Carregando itens...</p>
               </div>
             ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Nível</TableHead>
-                    <TableHead>Ramo</TableHead>
-                    <TableHead className="text-center">Quantidade</TableHead>
-                    <TableHead className="text-right">Valor Unitário</TableHead>
-                    <TableHead className="text-right">Valor Total</TableHead>
-                    <TableHead className="text-center">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredItems.map(item => (
-                    <TableRow key={item.id} className="hover:bg-muted/50">
-                      <TableCell className="font-medium">
-                        {item.descricao}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {item.tipo}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {item.nivel}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getRamoColor(item.ramo)} variant="secondary">
-                          {item.ramo}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center font-semibold">
-                        {item.quantidade}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(item.valorUnitario)}
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-scout-green">
-                        {formatCurrency(item.valorTotal)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(item)}
-                            className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja excluir o item "{item.descricao}"? 
-                                  Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(item)}
-                                  className="bg-red-500 hover:bg-red-600"
-                                >
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Nível</TableHead>
+                      <TableHead>Ramo</TableHead>
+                      <TableHead className="text-center">Quantidade</TableHead>
+                      <TableHead className="text-right">
+                        Valor Unitário
+                      </TableHead>
+                      <TableHead className="text-right">Valor Total</TableHead>
+                      <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredItems.map((item) => (
+                      <TableRow key={item.id} className="hover:bg-muted/50">
+                        <TableCell className="font-medium">
+                          {item.descricao}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {item.tipo}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">{item.nivel}</span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={getRamoColor(item.ramo)}
+                            variant="outline"
+                          >
+                            {item.ramo}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center font-semibold">
+                          {item.quantidade}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(item.valorUnitario)}
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-scout-green">
+                          {formatCurrency(item.valorTotal)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(item)}
+                              className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Confirmar Exclusão
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja excluir o item "
+                                    {item.descricao}"? Esta ação não pode ser
+                                    desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>
+                                    Cancelar
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(item)}
+                                    className="bg-red-500 hover:bg-red-600"
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
 
             {!loading && filteredItems.length === 0 && (

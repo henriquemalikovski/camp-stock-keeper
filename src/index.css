@@ -40,10 +40,18 @@ All colors MUST be HSL.
     --scout-green-light: 142 45% 35%;
     --scout-brown: 25 45% 35%;
     --scout-brown-light: 35 35% 75%;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(var(--scout-green)), hsl(var(--scout-green-light)));
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--scout-brown)), hsl(var(--scout-brown-light)));
-    
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(var(--scout-green)),
+      hsl(var(--scout-green-light))
+    );
+    --gradient-secondary: linear-gradient(
+      135deg,
+      hsl(var(--scout-brown)),
+      hsl(var(--scout-brown-light))
+    );
+
     --shadow-elegant: 0 4px 20px -4px hsl(var(--scout-green) / 0.15);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -108,6 +116,27 @@ All colors MUST be HSL.
 @layer base {
   * {
     @apply border-border;
+  }
+  .bg-lobinho {
+    background-color: #fab81e;
+  }
+  .bg-escoteiro {
+    background-color: #005321;
+  }
+  .bg-senior {
+    background-color: #a8153d;
+  }
+  .bg-pioneiro {
+    background-color: #e20613;
+  }
+  .bg-jovens {
+    background-color: #e54f13;
+  }
+  .bg-escotista {
+    background-color: #004f9e;
+  }
+  .bg-todos {
+    background-color: #554595;
   }
 
   body {
