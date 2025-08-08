@@ -19,9 +19,7 @@ const Header = () => {
             <img src="/Logo.svg" alt="" className="w-20 h-20" />
             <div>
               <h1 className="text-2xl font-bold text-primary-foreground">Grupo Escoteiro Arés</h1>
-              <p className="text-primary-foreground/80 text-sm">
-                Controle de Estoque do Grupo Escoteiro
-              </p>
+              <p className="text-primary-foreground/80 text-sm">Controle de Estoque</p>
             </div>
           </div>
 
