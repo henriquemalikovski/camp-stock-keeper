@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string, fullName: string) => {
     // Use production URL or current origin based on environment
     const redirectUrl = window.location.hostname === 'localhost' 
-      ? 'https://your-production-domain.com/' 
+      ? 'https://camp-stock-keeper.vercel.app/' 
       : `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
