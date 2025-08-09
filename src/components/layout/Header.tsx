@@ -22,12 +22,32 @@ const Header = () => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
-      setIsScrolled(scrollTop > 50);
+      
+      // Usar hysteresis para evitar o efeito de piscar
+      // Ativar quando scrollar para baixo além de 80px
+      // Desativar quando scrollar para cima e ficar abaixo de 30px
+      if (!isScrolled && scrollTop > 80) {
+        setIsScrolled(true);
+      } else if (isScrolled && scrollTop < 30) {
+        setIsScrolled(false);
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    // Usar throttle para melhor performance
+    let ticking = false;
+    const throttledHandleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', throttledHandleScroll);
+  }, [isScrolled]);
 
   const closeMenu = () => setIsMenuOpen(false);
 
