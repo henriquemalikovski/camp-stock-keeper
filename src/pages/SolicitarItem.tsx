@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Send, ArrowLeft, Package, ShoppingCart } from "lucide-react";
+import { Send, ArrowLeft, Package, ShoppingCart, Search } from "lucide-react";
 
 interface SelectedItem {
   id: string;
@@ -34,6 +34,7 @@ const SolicitarItem = () => {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [formData, setFormData] = useState({
     nome: "",
@@ -140,6 +141,13 @@ const SolicitarItem = () => {
       currency: "BRL",
     }).format(value);
   };
+
+  // Filtrar itens com base no termo de pesquisa
+  const filteredItems = items.filter(item =>
+    item.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.ramo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -264,20 +272,34 @@ const SolicitarItem = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5" />
-                Itens Disponíveis ({items.length})
+                Itens Disponíveis ({filteredItems.length})
               </CardTitle>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Pesquisar por item, tipo ou ramo..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="max-h-96 overflow-y-auto">
               {loadingItems ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-scout-green mx-auto mb-4"></div>
                   <p className="text-muted-foreground">Carregando itens...</p>
                 </div>
+              ) : filteredItems.length === 0 && searchTerm ? (
+                <div className="text-center py-8">
+                  <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Nenhum item encontrado para "{searchTerm}"</p>
+                </div>
               ) : (
                 <>
                   {/* Mobile View - Cards */}
                   <div className="block lg:hidden space-y-4">
-                    {items.map((item) => {
+                    {filteredItems.map((item) => {
                       const isSelected = selectedItems.some(selected => selected.id === item.id);
                       const selectedItem = selectedItems.find(selected => selected.id === item.id);
                       
@@ -352,7 +374,7 @@ const SolicitarItem = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {items.map((item) => {
+                        {filteredItems.map((item) => {
                           const isSelected = selectedItems.some(selected => selected.id === item.id);
                           const selectedItem = selectedItems.find(selected => selected.id === item.id);
                           
