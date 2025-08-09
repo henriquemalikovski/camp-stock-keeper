@@ -102,13 +102,18 @@ const SolicitarItem = () => {
 
   const handleItemSelection = (item: InventoryItem, checked: boolean) => {
     if (checked) {
-      setSelectedItems((prev) => [...prev, {
-        id: item.id,
-        descricao: item.descricao,
-        quantidade: 1,
-      }]);
+      setSelectedItems((prev) => [
+        ...prev,
+        {
+          id: item.id,
+          descricao: item.descricao,
+          quantidade: 1,
+        },
+      ]);
     } else {
-      setSelectedItems((prev) => prev.filter((selected) => selected.id !== item.id));
+      setSelectedItems((prev) =>
+        prev.filter((selected) => selected.id !== item.id)
+      );
     }
   };
 
@@ -143,10 +148,11 @@ const SolicitarItem = () => {
   };
 
   // Filtrar itens com base no termo de pesquisa
-  const filteredItems = items.filter(item =>
-    item.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.ramo.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredItems = items.filter(
+    (item) =>
+      item.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.ramo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -155,8 +161,8 @@ const SolicitarItem = () => {
 
     try {
       // Validações
-      const requiredFields = ['nome', 'grupoEscoteiro', 'email', 'telefone'];
-      
+      const requiredFields = ["nome", "grupoEscoteiro", "email", "telefone"];
+
       for (const field of requiredFields) {
         if (!formData[field as keyof typeof formData]) {
           toast({
@@ -189,7 +195,7 @@ const SolicitarItem = () => {
       }
 
       // Criar uma solicitação para cada item selecionado
-      const requests = selectedItems.map(item => ({
+      const requests = selectedItems.map((item) => ({
         nome: formData.nome,
         grupo_escoteiro: formData.grupoEscoteiro,
         email: formData.email,
@@ -199,15 +205,14 @@ const SolicitarItem = () => {
         mensagem_adicional: formData.mensagemAdicional || null,
       }));
 
-      const { error } = await supabase
-        .from("item_requests")
-        .insert(requests);
+      const { error } = await supabase.from("item_requests").insert(requests);
 
       if (error) {
         console.error("Erro ao salvar solicitação:", error);
         toast({
           title: "Erro ao Enviar",
-          description: "Ocorreu um erro ao enviar sua solicitação: " + error.message,
+          description:
+            "Ocorreu um erro ao enviar sua solicitação: " + error.message,
           variant: "destructive",
         });
         return;
@@ -262,7 +267,8 @@ const SolicitarItem = () => {
                 Solicitar Itens
               </h1>
               <p className="text-muted-foreground">
-                Selecione os itens desejados e preencha seus dados para fazer a solicitação
+                Selecione os itens desejados e preencha seus dados para fazer a
+                solicitação
               </p>
             </div>
           </div>
@@ -270,7 +276,7 @@ const SolicitarItem = () => {
           {/* Lista de Itens Disponíveis */}
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-4">
                 <ShoppingCart className="w-5 h-5" />
                 Itens Disponíveis ({filteredItems.length})
               </CardTitle>
@@ -293,53 +299,78 @@ const SolicitarItem = () => {
               ) : filteredItems.length === 0 && searchTerm ? (
                 <div className="text-center py-8">
                   <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Nenhum item encontrado para "{searchTerm}"</p>
+                  <p className="text-muted-foreground">
+                    Nenhum item encontrado para "{searchTerm}"
+                  </p>
                 </div>
               ) : (
                 <>
                   {/* Mobile View - Cards */}
                   <div className="block lg:hidden space-y-4">
                     {filteredItems.map((item) => {
-                      const isSelected = selectedItems.some(selected => selected.id === item.id);
-                      const selectedItem = selectedItems.find(selected => selected.id === item.id);
-                      
+                      const isSelected = selectedItems.some(
+                        (selected) => selected.id === item.id
+                      );
+                      const selectedItem = selectedItems.find(
+                        (selected) => selected.id === item.id
+                      );
+
                       return (
                         <Card key={item.id} className="p-4">
                           <div className="space-y-3">
                             <div className="flex items-start gap-3">
                               <Checkbox
                                 checked={isSelected}
-                                onCheckedChange={(checked) => handleItemSelection(item, checked as boolean)}
+                                onCheckedChange={(checked) =>
+                                  handleItemSelection(item, checked as boolean)
+                                }
                                 className="mt-1"
                               />
                               <div className="flex-1 min-w-0">
-                                <h3 className="font-medium text-sm leading-tight">{item.descricao}</h3>
+                                <h3 className="font-medium text-sm leading-tight">
+                                  {item.descricao}
+                                </h3>
                                 <div className="flex items-center gap-2 mt-1">
                                   <Badge
-                                    className={`${getRamoColor(item.ramo)} text-xs`}
+                                    className={`${getRamoColor(
+                                      item.ramo
+                                    )} text-xs`}
                                     variant="outline"
                                   >
                                     {item.ramo}
                                   </Badge>
-                                  <span className="text-xs text-muted-foreground">{item.tipo}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {item.tipo}
+                                  </span>
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="grid grid-cols-2 gap-3 text-sm">
                               <div>
-                                <span className="text-muted-foreground">Disponível:</span>
-                                <div className="font-semibold">{item.quantidade}</div>
+                                <span className="text-muted-foreground">
+                                  Disponível:
+                                </span>
+                                <div className="font-semibold">
+                                  {item.quantidade}
+                                </div>
                               </div>
                               <div>
-                                <span className="text-muted-foreground">Valor:</span>
-                                <div className="font-medium">{formatCurrency(item.valorUnitario)}</div>
+                                <span className="text-muted-foreground">
+                                  Valor:
+                                </span>
+                                <div className="font-medium">
+                                  {formatCurrency(item.valorUnitario)}
+                                </div>
                               </div>
                             </div>
 
                             {isSelected && (
                               <div className="pt-2 border-t">
-                                <Label htmlFor={`qty-${item.id}`} className="text-sm font-medium">
+                                <Label
+                                  htmlFor={`qty-${item.id}`}
+                                  className="text-sm font-medium"
+                                >
                                   Quantidade desejada:
                                 </Label>
                                 <Input
@@ -348,7 +379,12 @@ const SolicitarItem = () => {
                                   min="1"
                                   max={item.quantidade}
                                   value={selectedItem?.quantidade || 1}
-                                  onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
+                                  onChange={(e) =>
+                                    handleQuantityChange(
+                                      item.id,
+                                      parseInt(e.target.value) || 1
+                                    )
+                                  }
                                   className="w-full mt-1"
                                 />
                               </div>
@@ -364,26 +400,46 @@ const SolicitarItem = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-12">Selecionar</TableHead>
-                          <TableHead className="min-w-[200px]">Descrição</TableHead>
+                          <TableHead className="w-12">#</TableHead>
+                          <TableHead className="min-w-[200px]">
+                            Descrição
+                          </TableHead>
                           <TableHead className="min-w-[120px]">Tipo</TableHead>
                           <TableHead className="min-w-[100px]">Ramo</TableHead>
-                          <TableHead className="text-center min-w-[100px]">Disponível</TableHead>
-                          <TableHead className="text-right min-w-[120px]">Valor Unit.</TableHead>
-                          <TableHead className="text-center min-w-[120px]">Quantidade</TableHead>
+                          <TableHead className="text-center min-w-[100px]">
+                            Disponível
+                          </TableHead>
+                          <TableHead className="text-right min-w-[120px]">
+                            Valor Unit.
+                          </TableHead>
+                          <TableHead className="text-center min-w-[120px]">
+                            Quantidade
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredItems.map((item) => {
-                          const isSelected = selectedItems.some(selected => selected.id === item.id);
-                          const selectedItem = selectedItems.find(selected => selected.id === item.id);
-                          
+                          const isSelected = selectedItems.some(
+                            (selected) => selected.id === item.id
+                          );
+                          const selectedItem = selectedItems.find(
+                            (selected) => selected.id === item.id
+                          );
+
                           return (
-                            <TableRow key={item.id} className="hover:bg-muted/50">
+                            <TableRow
+                              key={item.id}
+                              className="hover:bg-muted/50"
+                            >
                               <TableCell>
                                 <Checkbox
                                   checked={isSelected}
-                                  onCheckedChange={(checked) => handleItemSelection(item, checked as boolean)}
+                                  onCheckedChange={(checked) =>
+                                    handleItemSelection(
+                                      item,
+                                      checked as boolean
+                                    )
+                                  }
                                 />
                               </TableCell>
                               <TableCell className="font-medium">
@@ -415,7 +471,12 @@ const SolicitarItem = () => {
                                     min="1"
                                     max={item.quantidade}
                                     value={selectedItem?.quantidade || 1}
-                                    onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
+                                    onChange={(e) =>
+                                      handleQuantityChange(
+                                        item.id,
+                                        parseInt(e.target.value) || 1
+                                      )
+                                    }
                                     className="w-20 text-center"
                                   />
                                 )}
@@ -431,11 +492,14 @@ const SolicitarItem = () => {
 
               {selectedItems.length > 0 && (
                 <div className="mt-4 p-4 bg-scout-green/5 rounded-lg border border-scout-green/20">
-                  <h4 className="font-medium text-scout-green mb-2">Itens Selecionados:</h4>
+                  <h4 className="font-medium text-scout-green mb-2">
+                    Itens Selecionados:
+                  </h4>
                   <div className="space-y-1">
                     {selectedItems.map((item) => (
                       <div key={item.id} className="text-sm">
-                        <span className="font-medium">{item.descricao}</span> - Quantidade: {item.quantidade}
+                        <span className="font-medium">{item.descricao}</span> -
+                        Quantidade: {item.quantidade}
                       </div>
                     ))}
                   </div>
@@ -457,7 +521,9 @@ const SolicitarItem = () => {
                       id="nome"
                       placeholder="Digite seu nome completo"
                       value={formData.nome}
-                      onChange={(e) => handleInputChange("nome", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("nome", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -468,7 +534,9 @@ const SolicitarItem = () => {
                       id="grupoEscoteiro"
                       placeholder="Digite o nome do seu grupo"
                       value={formData.grupoEscoteiro}
-                      onChange={(e) => handleInputChange("grupoEscoteiro", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("grupoEscoteiro", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -482,7 +550,9 @@ const SolicitarItem = () => {
                       type="email"
                       placeholder="Digite seu email"
                       value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -494,7 +564,9 @@ const SolicitarItem = () => {
                       type="tel"
                       placeholder="(11) 99999-9999"
                       value={formData.telefone}
-                      onChange={(e) => handleInputChange("telefone", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("telefone", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -506,7 +578,9 @@ const SolicitarItem = () => {
                     id="mensagemAdicional"
                     placeholder="Digite informações adicionais sobre sua solicitação (opcional)"
                     value={formData.mensagemAdicional}
-                    onChange={(e) => handleInputChange("mensagemAdicional", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("mensagemAdicional", e.target.value)
+                    }
                     rows={4}
                   />
                 </div>
@@ -518,7 +592,11 @@ const SolicitarItem = () => {
                     className="w-full sm:flex-1 bg-scout-green hover:bg-scout-green-light"
                   >
                     <Send className="w-4 h-4 mr-2" />
-                    {isSubmitting ? "Enviando..." : `Enviar Solicitação (${selectedItems.length} item${selectedItems.length !== 1 ? 's' : ''})`}
+                    {isSubmitting
+                      ? "Enviando..."
+                      : `Enviar Solicitação (${selectedItems.length} item${
+                          selectedItems.length !== 1 ? "s" : ""
+                        })`}
                   </Button>
 
                   <Button

@@ -139,6 +139,10 @@ All colors MUST be HSL.
     background-color: #554595;
   }
 
+  .m-top2 {
+    margin-top: 2rem;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
