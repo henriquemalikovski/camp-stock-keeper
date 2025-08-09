@@ -1,6 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus, Package, FileText, LogIn, LogOut, Shield, Menu, X } from "lucide-react";
+import {
+  Plus,
+  Package,
+  FileText,
+  LogIn,
+  LogOut,
+  Shield,
+  Menu,
+  X,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import {
@@ -25,10 +34,10 @@ const Header = () => {
     setIsScrolled(initialScroll > 100);
 
     let rafId: number;
-    
+
     const handleScroll = () => {
       const scrollTop = window.scrollY;
-      
+
       // Usar uma faixa maior para evitar piscar
       if (!isScrolled && scrollTop > 120) {
         setIsScrolled(true);
@@ -41,14 +50,14 @@ const Header = () => {
       if (rafId) {
         cancelAnimationFrame(rafId);
       }
-      
+
       rafId = requestAnimationFrame(handleScroll);
     };
 
-    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
-    
+    window.addEventListener("scroll", throttledHandleScroll, { passive: true });
+
     return () => {
-      window.removeEventListener('scroll', throttledHandleScroll);
+      window.removeEventListener("scroll", throttledHandleScroll);
       if (rafId) {
         cancelAnimationFrame(rafId);
       }
@@ -59,9 +68,9 @@ const Header = () => {
 
   const NavigationItems = () => (
     <>
-      <Button 
-        variant={location.pathname === "/" ? "secondary" : "ghost"} 
-        asChild 
+      <Button
+        variant={location.pathname === "/" ? "secondary" : "ghost"}
+        asChild
         className="w-full justify-start lg:w-auto lg:justify-center"
         onClick={closeMenu}
       >
@@ -71,9 +80,9 @@ const Header = () => {
         </Link>
       </Button>
 
-      <Button 
-        variant={location.pathname === "/solicitar" ? "secondary" : "ghost"} 
-        asChild 
+      <Button
+        variant={location.pathname === "/solicitar" ? "secondary" : "ghost"}
+        asChild
         className="w-full justify-start lg:w-auto lg:justify-center"
         onClick={closeMenu}
       >
@@ -85,9 +94,9 @@ const Header = () => {
 
       {user && (
         <>
-          <Button 
-            variant={location.pathname === "/cadastro" ? "secondary" : "ghost"} 
-            asChild 
+          <Button
+            variant={location.pathname === "/cadastro" ? "secondary" : "ghost"}
+            asChild
             className="w-full justify-start lg:w-auto lg:justify-center"
             onClick={closeMenu}
           >
@@ -98,9 +107,13 @@ const Header = () => {
           </Button>
 
           {isAdmin && (
-            <Button 
-              variant={location.pathname === "/admin/solicitacoes" ? "secondary" : "ghost"} 
-              asChild 
+            <Button
+              variant={
+                location.pathname === "/admin/solicitacoes"
+                  ? "secondary"
+                  : "ghost"
+              }
+              asChild
               className="w-full justify-start lg:w-auto lg:justify-center"
               onClick={closeMenu}
             >
@@ -114,8 +127,8 @@ const Header = () => {
       )}
 
       {user ? (
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => {
             signOut();
             closeMenu();
@@ -126,9 +139,9 @@ const Header = () => {
           Sair
         </Button>
       ) : (
-        <Button 
-          variant={location.pathname === "/auth" ? "secondary" : "ghost"} 
-          asChild 
+        <Button
+          variant={location.pathname === "/auth" ? "secondary" : "ghost"}
+          asChild
           className="w-full justify-start lg:w-auto lg:justify-center"
           onClick={closeMenu}
         >
@@ -142,37 +155,51 @@ const Header = () => {
   );
 
   return (
-    <header 
+    <header
       className={`sticky top-0 z-50 overflow-hidden transition-all duration-500 ease-out ${
-        isScrolled 
-          ? 'bg-scout-green/90 shadow-lg' 
-          : 'relative bg-gradient-to-r from-scout-green/95 to-scout-green-light/95 shadow-elegant'
+        isScrolled
+          ? "bg-scout-green shadow-lg"
+          : "relative bg-gradient-to-r from-scout-green/95 to-scout-green-light/95 shadow-elegant"
       }`}
-      style={!isScrolled ? {
-        backgroundImage: `url(${scoutHeroBg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundBlendMode: "overlay"
-      } : {}}
+      style={
+        !isScrolled
+          ? {
+              backgroundImage: `url(${scoutHeroBg})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundBlendMode: "overlay",
+            }
+          : {}
+      }
     >
-      {!isScrolled && <div className="absolute inset-0 bg-scout-green/80"></div>}
-      <div className={`container mx-auto px-4 relative z-10 transition-all duration-300 ${
-        isScrolled ? 'py-2' : 'py-4 lg:py-6'
-      }`}>
+      {!isScrolled && (
+        <div className="absolute inset-0 bg-scout-green/80"></div>
+      )}
+      <div
+        className={`container mx-auto px-4 relative z-10 transition-all duration-300 ${
+          isScrolled ? "py-2" : "py-4 lg:py-6"
+        }`}
+      >
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
           <div className="flex items-center space-x-2 lg:space-x-3 min-w-0 flex-1">
-            <img 
-              src="/Logo.svg" 
-              alt="Logo" 
+            <img
+              src="/Logo.svg"
+              alt="Logo"
               className={`flex-shrink-0 transition-all duration-300 ${
-                isScrolled ? 'w-8 h-8 sm:w-10 sm:h-10' : 'w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20'
-              }`} 
+                isScrolled
+                  ? "w-8 h-8 sm:w-10 sm:h-10"
+                  : "w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20"
+              }`}
             />
             <div className="min-w-0">
-              <h1 className={`font-bold text-primary-foreground truncate transition-all duration-300 ${
-                isScrolled ? 'text-sm sm:text-base lg:text-lg' : 'text-lg sm:text-xl lg:text-2xl'
-              }`}>
+              <h1
+                className={`font-bold text-primary-foreground truncate transition-all duration-300 ${
+                  isScrolled
+                    ? "text-sm sm:text-base lg:text-lg"
+                    : "text-lg sm:text-xl lg:text-2xl"
+                }`}
+              >
                 Grupo Escoteiro Arés
               </h1>
               {!isScrolled && (
@@ -191,12 +218,16 @@ const Header = () => {
           {/* Mobile Menu Button */}
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size={isScrolled ? "sm" : "sm"} 
+              <Button
+                variant="ghost"
+                size={isScrolled ? "sm" : "sm"}
                 className="lg:hidden text-primary-foreground hover:bg-white/10"
               >
-                <Menu className={`transition-all duration-300 ${isScrolled ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                <Menu
+                  className={`transition-all duration-300 ${
+                    isScrolled ? "h-4 w-4" : "h-5 w-5"
+                  }`}
+                />
                 <span className="sr-only">Abrir menu</span>
               </Button>
             </SheetTrigger>
