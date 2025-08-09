@@ -203,26 +203,24 @@ const AdminSolicitacoes = () => {
         </div>
 
         {/* Filtro por Status */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Filtrar por status:</span>
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pendente">Pendentes</SelectItem>
-                  <SelectItem value="resolvida">Resolvidas</SelectItem>
-                  <SelectItem value="todas">Todas</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="mb-6">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Filtrar por status:</span>
             </div>
-          </CardContent>
-        </Card>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pendente">Pendentes</SelectItem>
+                <SelectItem value="resolvida">Resolvidas</SelectItem>
+                <SelectItem value="todas">Todas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         <Card>
           <CardHeader>
