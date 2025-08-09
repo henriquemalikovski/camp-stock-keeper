@@ -145,7 +145,7 @@ const Header = () => {
     <header 
       className={`sticky top-0 z-50 overflow-hidden transition-all duration-500 ease-out ${
         isScrolled 
-          ? 'bg-scout-green/98 backdrop-blur-md shadow-lg' 
+          ? 'bg-scout-green/90 shadow-lg' 
           : 'relative bg-gradient-to-r from-scout-green/95 to-scout-green-light/95 shadow-elegant'
       }`}
       style={!isScrolled ? {
