@@ -20,33 +20,39 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    // Verificar posição inicial do scroll
+    const initialScroll = window.scrollY;
+    setIsScrolled(initialScroll > 100);
+
+    let rafId: number;
+    
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       
-      // Usar hysteresis para evitar o efeito de piscar
-      // Ativar quando scrollar para baixo além de 80px
-      // Desativar quando scrollar para cima e ficar abaixo de 30px
-      if (!isScrolled && scrollTop > 80) {
+      // Usar uma faixa maior para evitar piscar
+      if (!isScrolled && scrollTop > 120) {
         setIsScrolled(true);
-      } else if (isScrolled && scrollTop < 30) {
+      } else if (isScrolled && scrollTop < 20) {
         setIsScrolled(false);
       }
     };
 
-    // Usar throttle para melhor performance
-    let ticking = false;
     const throttledHandleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
-        ticking = true;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
       }
+      
+      rafId = requestAnimationFrame(handleScroll);
     };
 
     window.addEventListener('scroll', throttledHandleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', throttledHandleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', throttledHandleScroll);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
   }, [isScrolled]);
 
   const closeMenu = () => setIsMenuOpen(false);
@@ -137,11 +143,11 @@ const Header = () => {
 
   return (
     <header 
-      className={`sticky top-0 z-50 transition-all duration-300 ease-in-out ${
+      className={`sticky top-0 z-50 overflow-hidden transition-all duration-500 ease-out ${
         isScrolled 
-          ? 'bg-scout-green/95 backdrop-blur-md shadow-lg' 
+          ? 'bg-scout-green/98 backdrop-blur-md shadow-lg' 
           : 'relative bg-gradient-to-r from-scout-green/95 to-scout-green-light/95 shadow-elegant'
-      } overflow-hidden`}
+      }`}
       style={!isScrolled ? {
         backgroundImage: `url(${scoutHeroBg})`,
         backgroundSize: "cover",
