@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import {
   InventoryItem,
   NIVEIS,
@@ -29,6 +30,7 @@ import { Save, ArrowLeft, Package } from "lucide-react";
 const CadastroItem = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get("edit");
 
@@ -45,13 +47,20 @@ const CadastroItem = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
+
   // Carregar item para edição
   useEffect(() => {
-    if (editId) {
+    if (editId && user) {
       loadItemForEdit(editId);
       setIsEditing(true);
     }
-  }, [editId]);
+  }, [editId, user]);
 
   const loadItemForEdit = async (id: string) => {
     try {
@@ -218,6 +227,24 @@ const CadastroItem = () => {
       currency: "BRL",
     }).format(value);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-scout-green mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Carregando...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Redirection will happen via useEffect
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus, Package } from "lucide-react";
+import { Plus, Package, FileText, LogIn, LogOut, Shield } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import scoutHeroBg from "@/assets/scout-hero-bg.jpg";
 const Header = () => {
   const location = useLocation();
+  const { user, signOut, isAdmin } = useAuth();
   return <header className="relative bg-gradient-to-r from-scout-green/95 to-scout-green-light/95 shadow-elegant overflow-hidden" style={{
     backgroundImage: `url(${scoutHeroBg})`,
     backgroundSize: "cover",
@@ -24,31 +26,53 @@ const Header = () => {
           </div>
 
           <nav className="flex items-center space-x-4">
-            <Button variant={location.pathname === "/" ? "secondary" : "default"} asChild
-          // className={
-          //   location.pathname === "/"
-          //     ? ""
-          //     : "border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
-          // }
-          >
+            <Button variant={location.pathname === "/" ? "secondary" : "default"} asChild>
               <Link to="/">
                 <Package className="w-4 h-4 mr-2" />
                 Estoque
               </Link>
             </Button>
 
-            <Button variant={location.pathname === "/cadastro" ? "secondary" : "default"} asChild
-          // className={
-          //   location.pathname === "/cadastro"
-          //     ? ""
-          //     : "border-primary-foreground/20  hover:bg-primary-foreground/10"
-          // }
-          >
-              <Link to="/cadastro">
-                <Plus className="w-4 h-4 mr-2" />
-                Cadastrar Item
+            <Button variant={location.pathname === "/solicitar" ? "secondary" : "default"} asChild>
+              <Link to="/solicitar">
+                <FileText className="w-4 h-4 mr-2" />
+                Solicitar Item
               </Link>
             </Button>
+
+            {user && (
+              <>
+                <Button variant={location.pathname === "/cadastro" ? "secondary" : "default"} asChild>
+                  <Link to="/cadastro">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Cadastrar Item
+                  </Link>
+                </Button>
+
+                {isAdmin && (
+                  <Button variant={location.pathname === "/admin/solicitacoes" ? "secondary" : "default"} asChild>
+                    <Link to="/admin/solicitacoes">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Solicitações
+                    </Link>
+                  </Button>
+                )}
+              </>
+            )}
+
+            {user ? (
+              <Button variant="outline" onClick={signOut}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </Button>
+            ) : (
+              <Button variant={location.pathname === "/auth" ? "secondary" : "default"} asChild>
+                <Link to="/auth">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
+                </Link>
+              </Button>
+            )}
           </nav>
         </div>
       </div>
