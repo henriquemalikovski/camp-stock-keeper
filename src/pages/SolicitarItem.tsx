@@ -294,7 +294,7 @@ const SolicitarItem = () => {
                 />
               </div>
             </CardHeader>
-            <CardContent className="max-h-96 overflow-y-auto pb-6">
+            <CardContent className="max-h-96 overflow-y-auto">
               {loadingItems ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-scout-green mx-auto mb-4"></div>
@@ -310,7 +310,7 @@ const SolicitarItem = () => {
               ) : (
                 <>
                   {/* Mobile View - Cards */}
-                  <div className="block lg:hidden space-y-4">
+                  <div className="block lg:hidden space-y-4 pb-6">
                     {filteredItems.map((item) => {
                       const isSelected = selectedItems.some(
                         (selected) => selected.id === item.id
@@ -400,7 +400,7 @@ const SolicitarItem = () => {
                   </div>
 
                   {/* Desktop View - Table */}
-                  <div className="hidden lg:block rounded-md border overflow-x-auto">
+                  <div className="hidden lg:block rounded-md border overflow-x-auto pb-6">
                     <Table>
                       <TableHeader>
                         <TableRow>
