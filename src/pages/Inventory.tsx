@@ -338,9 +338,9 @@ const Inventory = () => {
                       <TableHead>Nível</TableHead>
                       <TableHead>Ramo</TableHead>
                       <TableHead className="text-center">Quantidade</TableHead>
+                      <TableHead className="text-right">Valor Unitário</TableHead>
                       {isAdmin && (
                         <>
-                          <TableHead className="text-right">Valor Unitário</TableHead>
                           <TableHead className="text-right">Valor Total</TableHead>
                           <TableHead className="text-center">Ações</TableHead>
                         </>
@@ -372,11 +372,11 @@ const Inventory = () => {
                         <TableCell className="text-center font-semibold">
                           {item.quantidade}
                         </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(item.valorUnitario)}
+                        </TableCell>
                         {isAdmin && (
                           <>
-                            <TableCell className="text-right">
-                              {formatCurrency(item.valorUnitario)}
-                            </TableCell>
                             <TableCell className="text-right font-bold text-scout-green">
                               {formatCurrency(item.valorTotal)}
                             </TableCell>
