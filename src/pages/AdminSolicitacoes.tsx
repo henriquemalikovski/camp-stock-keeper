@@ -13,8 +13,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ClipboardList, Phone, Mail, MessageSquare } from "lucide-react";
+import { ClipboardList, Phone, Mail, MessageSquare, CheckCircle } from "lucide-react";
 
 interface ItemRequest {
   id: string;
@@ -26,6 +27,7 @@ interface ItemRequest {
   quantidade: number;
   mensagem_adicional: string | null;
   created_at: string;
+  status: string;
 }
 
 const AdminSolicitacoes = () => {
@@ -55,6 +57,7 @@ const AdminSolicitacoes = () => {
       const { data, error } = await supabase
         .from("item_requests")
         .select("*")
+        .eq("status", "pendente")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -77,6 +80,40 @@ const AdminSolicitacoes = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const markAsResolved = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from("item_requests")
+        .update({ status: "resolvida" })
+        .eq("id", requestId);
+
+      if (error) {
+        console.error("Erro ao marcar como resolvida:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível marcar a solicitação como resolvida.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Solicitação marcada como resolvida!",
+      });
+
+      // Recarregar a lista para remover a solicitação resolvida
+      loadRequests();
+    } catch (error) {
+      console.error("Erro inesperado:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -116,10 +153,10 @@ const AdminSolicitacoes = () => {
         <div className="mb-8">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-scout-green" />
-            Solicitações de Itens
+            Solicitações de Itens Pendentes
           </h1>
           <p className="text-muted-foreground">
-            Visualize e gerencie todas as solicitações de itens recebidas
+            Visualize e gerencie todas as solicitações de itens pendentes
           </p>
         </div>
 
@@ -127,7 +164,7 @@ const AdminSolicitacoes = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="w-5 h-5" />
-              Lista de Solicitações ({requests.length})
+              Solicitações Pendentes ({requests.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -140,10 +177,10 @@ const AdminSolicitacoes = () => {
               <div className="text-center py-12">
                 <ClipboardList className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                  Nenhuma solicitação encontrada
+                  Nenhuma solicitação pendente
                 </h3>
                 <p className="text-muted-foreground">
-                  Quando alguém solicitar um item, aparecerá aqui.
+                  Todas as solicitações foram resolvidas ou nenhuma foi feita ainda.
                 </p>
               </div>
             ) : (
@@ -201,6 +238,17 @@ const AdminSolicitacoes = () => {
                               </div>
                             </div>
                           )}
+                          
+                          <div className="pt-3 border-t">
+                            <Button
+                              onClick={() => markAsResolved(request.id)}
+                              size="sm"
+                              className="w-full bg-scout-green hover:bg-scout-green/90"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Marcar como Resolvida
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </Card>
@@ -219,6 +267,7 @@ const AdminSolicitacoes = () => {
                         <TableHead className="text-center min-w-[100px]">Quantidade</TableHead>
                         <TableHead className="min-w-[200px]">Mensagem</TableHead>
                         <TableHead className="min-w-[150px]">Data</TableHead>
+                        <TableHead className="min-w-[120px]">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -264,6 +313,16 @@ const AdminSolicitacoes = () => {
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {formatDate(request.created_at)}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              onClick={() => markAsResolved(request.id)}
+                              size="sm"
+                              className="bg-scout-green hover:bg-scout-green/90"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Resolver
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}

@@ -63,6 +63,7 @@ export type Database = {
           mensagem_adicional: string | null
           nome: string
           quantidade: number
+          status: string
           telefone: string
           updated_at: string
         }
@@ -75,6 +76,7 @@ export type Database = {
           mensagem_adicional?: string | null
           nome: string
           quantidade: number
+          status?: string
           telefone: string
           updated_at?: string
         }
@@ -87,6 +89,7 @@ export type Database = {
           mensagem_adicional?: string | null
           nome?: string
           quantidade?: number
+          status?: string
           telefone?: string
           updated_at?: string
         }
