@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import {
   InventoryItem,
   NIVEIS,
@@ -10,7 +10,7 @@ import {
   Ramo,
 } from "@/types/inventory";
 import { supabase } from "@/integrations/supabase/client";
-import Header from "@/components/layout/Header";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,10 +27,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Save, ArrowLeft, Package } from "lucide-react";
 
 const CadastroItem = () => {
+  const { user, isAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get("edit");
+
+  // Redirect if not authenticated or not admin
+  if (!authLoading && (!user || !isAdmin)) {
+    return <Navigate to="/auth" replace />;
+  }
 
   const [formData, setFormData] = useState({
     nivel: "" as Nivel | "",
@@ -221,8 +227,6 @@ const CadastroItem = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-3 mb-8">

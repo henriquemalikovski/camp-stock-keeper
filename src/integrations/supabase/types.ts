@@ -53,6 +53,45 @@ export type Database = {
         }
         Relationships: []
       }
+      item_requests: {
+        Row: {
+          created_at: string
+          email: string
+          grupo_escoteiro: string
+          id: string
+          item_solicitado: string
+          mensagem_adicional: string | null
+          nome: string
+          quantidade: number
+          telefone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          grupo_escoteiro: string
+          id?: string
+          item_solicitado: string
+          mensagem_adicional?: string | null
+          nome: string
+          quantidade: number
+          telefone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          grupo_escoteiro?: string
+          id?: string
+          item_solicitado?: string
+          mensagem_adicional?: string | null
+          nome?: string
+          quantidade?: number
+          telefone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       material_withdrawals: {
         Row: {
           created_at: string
