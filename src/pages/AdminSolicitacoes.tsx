@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ClipboardList, Phone, Mail, MessageSquare, CheckCircle } from "lucide-react";
+import { ClipboardList, Phone, Mail, MessageSquare, CheckCircle, Filter } from "lucide-react";
 
 interface ItemRequest {
   id: string;
@@ -37,6 +38,7 @@ const AdminSolicitacoes = () => {
   
   const [requests, setRequests] = useState<ItemRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<string>("pendente");
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -49,16 +51,22 @@ const AdminSolicitacoes = () => {
     if (user) {
       loadRequests();
     }
-  }, [user]);
+  }, [user, statusFilter]);
 
   const loadRequests = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      let query = supabase
         .from("item_requests")
-        .select("*")
-        .eq("status", "pendente")
-        .order("created_at", { ascending: false });
+        .select("*");
+      
+      // Aplicar filtro por status se não for "todas"
+      if (statusFilter !== "todas") {
+        query = query.eq("status", statusFilter);
+      }
+      
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) {
         console.error("Erro ao carregar solicitações:", error);
@@ -117,6 +125,40 @@ const AdminSolicitacoes = () => {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "pendente": return "Pendente";
+      case "resolvida": return "Resolvida";
+      default: return status;
+    }
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "pendente": return "default";
+      case "resolvida": return "secondary";
+      default: return "outline";
+    }
+  };
+
+  const getPageTitle = () => {
+    switch (statusFilter) {
+      case "pendente": return "Solicitações de Itens Pendentes";
+      case "resolvida": return "Solicitações de Itens Resolvidas";
+      case "todas": return "Todas as Solicitações de Itens";
+      default: return "Solicitações de Itens";
+    }
+  };
+
+  const getPageDescription = () => {
+    switch (statusFilter) {
+      case "pendente": return "Visualize e gerencie todas as solicitações de itens pendentes";
+      case "resolvida": return "Visualize todas as solicitações de itens já resolvidas";
+      case "todas": return "Visualize todas as solicitações de itens";
+      default: return "Visualize e gerencie as solicitações de itens";
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("pt-BR", {
       day: "2-digit",
@@ -153,18 +195,42 @@ const AdminSolicitacoes = () => {
         <div className="mb-8">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-scout-green" />
-            Solicitações de Itens Pendentes
+            {getPageTitle()}
           </h1>
           <p className="text-muted-foreground">
-            Visualize e gerencie todas as solicitações de itens pendentes
+            {getPageDescription()}
           </p>
         </div>
+
+        {/* Filtro por Status */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Filtrar por status:</span>
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pendente">Pendentes</SelectItem>
+                  <SelectItem value="resolvida">Resolvidas</SelectItem>
+                  <SelectItem value="todas">Todas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="w-5 h-5" />
-              Solicitações Pendentes ({requests.length})
+              {statusFilter === "todas" ? `Todas as Solicitações (${requests.length})` : 
+               statusFilter === "pendente" ? `Solicitações Pendentes (${requests.length})` :
+               `Solicitações Resolvidas (${requests.length})`}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -177,10 +243,14 @@ const AdminSolicitacoes = () => {
               <div className="text-center py-12">
                 <ClipboardList className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                  Nenhuma solicitação pendente
+                  {statusFilter === "pendente" ? "Nenhuma solicitação pendente" :
+                   statusFilter === "resolvida" ? "Nenhuma solicitação resolvida" :
+                   "Nenhuma solicitação encontrada"}
                 </h3>
                 <p className="text-muted-foreground">
-                  Todas as solicitações foram resolvidas ou nenhuma foi feita ainda.
+                  {statusFilter === "pendente" ? "Todas as solicitações foram resolvidas ou nenhuma foi feita ainda." :
+                   statusFilter === "resolvida" ? "Nenhuma solicitação foi resolvida ainda." :
+                   "Quando alguém solicitar um item, aparecerá aqui."}
                 </p>
               </div>
             ) : (
@@ -193,9 +263,14 @@ const AdminSolicitacoes = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
                             <h3 className="font-medium text-sm leading-tight">{request.nome}</h3>
-                            <Badge variant="outline" className="bg-scout-green/10 text-scout-green border-scout-green/20 mt-1 text-xs">
-                              {request.grupo_escoteiro}
-                            </Badge>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="bg-scout-green/10 text-scout-green border-scout-green/20 text-xs">
+                                {request.grupo_escoteiro}
+                              </Badge>
+                              <Badge variant={getStatusBadgeVariant(request.status)} className="text-xs">
+                                {getStatusLabel(request.status)}
+                              </Badge>
+                            </div>
                           </div>
                           <div className="text-xs text-muted-foreground ml-2 flex-shrink-0">
                             {formatDate(request.created_at)}
@@ -239,16 +314,18 @@ const AdminSolicitacoes = () => {
                             </div>
                           )}
                           
-                          <div className="pt-3 border-t">
-                            <Button
-                              onClick={() => markAsResolved(request.id)}
-                              size="sm"
-                              className="w-full bg-scout-green hover:bg-scout-green/90"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Marcar como Resolvida
-                            </Button>
-                          </div>
+                          {statusFilter === "pendente" && (
+                            <div className="pt-3 border-t">
+                              <Button
+                                onClick={() => markAsResolved(request.id)}
+                                size="sm"
+                                className="w-full bg-scout-green hover:bg-scout-green/90"
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Marcar como Resolvida
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </Card>
@@ -267,7 +344,8 @@ const AdminSolicitacoes = () => {
                         <TableHead className="text-center min-w-[100px]">Quantidade</TableHead>
                         <TableHead className="min-w-[200px]">Mensagem</TableHead>
                         <TableHead className="min-w-[150px]">Data</TableHead>
-                        <TableHead className="min-w-[120px]">Ações</TableHead>
+                        <TableHead className="min-w-[100px]">Status</TableHead>
+                        {statusFilter === "pendente" && <TableHead className="min-w-[120px]">Ações</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -277,9 +355,11 @@ const AdminSolicitacoes = () => {
                             {request.nome}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="bg-scout-green/10 text-scout-green border-scout-green/20">
-                              {request.grupo_escoteiro}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="bg-scout-green/10 text-scout-green border-scout-green/20">
+                                {request.grupo_escoteiro}
+                              </Badge>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="space-y-1">
@@ -315,15 +395,22 @@ const AdminSolicitacoes = () => {
                             {formatDate(request.created_at)}
                           </TableCell>
                           <TableCell>
-                            <Button
-                              onClick={() => markAsResolved(request.id)}
-                              size="sm"
-                              className="bg-scout-green hover:bg-scout-green/90"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Resolver
-                            </Button>
+                            <Badge variant={getStatusBadgeVariant(request.status)}>
+                              {getStatusLabel(request.status)}
+                            </Badge>
                           </TableCell>
+                          {statusFilter === "pendente" && (
+                            <TableCell>
+                              <Button
+                                onClick={() => markAsResolved(request.id)}
+                                size="sm"
+                                className="bg-scout-green hover:bg-scout-green/90"
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Resolver
+                              </Button>
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>
