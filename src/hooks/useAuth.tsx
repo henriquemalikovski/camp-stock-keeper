@@ -122,21 +122,53 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
+    try {
+      console.log('Iniciando logout...');
+      
+      // Forçar logout global e limpar todas as sessões
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      console.log('Resultado do logout:', { error });
+      
+      // Sempre limpar o estado local, mesmo se houver erro
       setUser(null);
       setSession(null);
       setIsAdmin(false);
+      
+      // Limpar localStorage como backup
+      localStorage.removeItem('supabase.auth.token');
+      
+      if (!error) {
+        toast({
+          title: "Logout realizado",
+          description: "Você foi desconectado do sistema.",
+        });
+      } else {
+        console.error('Erro no logout:', error);
+        toast({
+          title: "Logout realizado",
+          description: "Você foi desconectado do sistema.",
+        });
+      }
+      
+      // Forçar redirecionamento para página inicial
+      window.location.href = '/';
+    } catch (err) {
+      console.error('Erro inesperado no logout:', err);
+      
+      // Mesmo com erro, limpar estado local
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+      localStorage.removeItem('supabase.auth.token');
+      
       toast({
         title: "Logout realizado",
         description: "Você foi desconectado do sistema.",
       });
-    } else {
-      toast({
-        title: "Erro ao sair",
-        description: "Ocorreu um erro ao fazer logout.",
-        variant: "destructive",
-      });
+      
+      // Forçar redirecionamento
+      window.location.href = '/';
     }
   };
 
