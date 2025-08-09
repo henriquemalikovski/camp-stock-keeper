@@ -71,7 +71,9 @@ const Header = () => {
       <Button
         variant={location.pathname === "/" ? "secondary" : "ghost"}
         asChild
-        className="w-full justify-start lg:w-auto lg:justify-center text-foreground lg:text-primary-foreground"
+        className={`w-full justify-start lg:w-auto lg:justify-center text-foreground ${
+          location.pathname === "/" ? "" : "lg:text-primary-foreground"
+        }`}
         onClick={closeMenu}
       >
         <Link to="/">
@@ -83,7 +85,9 @@ const Header = () => {
       <Button
         variant={location.pathname === "/solicitar" ? "secondary" : "ghost"}
         asChild
-        className="w-full justify-start lg:w-auto lg:justify-center text-foreground lg:text-primary-foreground"
+        className={`w-full justify-start lg:w-auto lg:justify-center text-foreground ${
+          location.pathname === "/solicitar" ? "" : "lg:text-primary-foreground"
+        }`}
         onClick={closeMenu}
       >
         <Link to="/solicitar">
@@ -97,7 +101,9 @@ const Header = () => {
           <Button
             variant={location.pathname === "/cadastro" ? "secondary" : "ghost"}
             asChild
-            className="w-full justify-start lg:w-auto lg:justify-center text-foreground lg:text-primary-foreground"
+            className={`w-full justify-start lg:w-auto lg:justify-center text-foreground ${
+              location.pathname === "/cadastro" ? "" : "lg:text-primary-foreground"
+            }`}
             onClick={closeMenu}
           >
             <Link to="/cadastro">
@@ -114,7 +120,9 @@ const Header = () => {
                   : "ghost"
               }
               asChild
-              className="w-full justify-start lg:w-auto lg:justify-center text-foreground lg:text-primary-foreground"
+              className={`w-full justify-start lg:w-auto lg:justify-center text-foreground ${
+                location.pathname === "/admin/solicitacoes" ? "" : "lg:text-primary-foreground"
+              }`}
               onClick={closeMenu}
             >
               <Link to="/admin/solicitacoes">
@@ -142,7 +150,9 @@ const Header = () => {
         <Button
           variant={location.pathname === "/auth" ? "secondary" : "ghost"}
           asChild
-          className="w-full justify-start lg:w-auto lg:justify-center text-foreground lg:text-primary-foreground"
+          className={`w-full justify-start lg:w-auto lg:justify-center text-foreground ${
+            location.pathname === "/auth" ? "" : "lg:text-primary-foreground"
+          }`}
           onClick={closeMenu}
         >
           <Link to="/auth">
