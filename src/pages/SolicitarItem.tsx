@@ -157,7 +157,19 @@ const SolicitarItem = () => {
       item.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.ramo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).sort((a, b) => {
+    // Ordenar por descrição, tipo, nivel e ramo
+    const descCompare = a.descricao.localeCompare(b.descricao);
+    if (descCompare !== 0) return descCompare;
+    
+    const tipoCompare = a.tipo.localeCompare(b.tipo);
+    if (tipoCompare !== 0) return tipoCompare;
+    
+    const nivelCompare = a.nivel.localeCompare(b.nivel);
+    if (nivelCompare !== 0) return nivelCompare;
+    
+    return a.ramo.localeCompare(b.ramo);
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
