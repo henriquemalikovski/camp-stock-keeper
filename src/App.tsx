@@ -9,6 +9,7 @@ import CadastroItem from "./pages/CadastroItem";
 import RequestForm from "./pages/RequestForm";
 import Requests from "./pages/Requests";
 import Auth from "./pages/Auth";
+import SetupAdmin from "./pages/SetupAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/solicitar" element={<RequestForm />} />
             <Route path="/solicitacoes" element={<Requests />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/setup-admin" element={<SetupAdmin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
