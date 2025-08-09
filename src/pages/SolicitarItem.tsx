@@ -294,7 +294,7 @@ const SolicitarItem = () => {
                 />
               </div>
             </CardHeader>
-            <CardContent className="max-h-96 overflow-y-auto">
+            <CardContent className="max-h-96 overflow-y-auto p-6">
               {loadingItems ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-scout-green mx-auto mb-4"></div>
