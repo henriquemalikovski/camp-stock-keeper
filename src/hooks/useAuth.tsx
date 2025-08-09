@@ -47,11 +47,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             try {
               const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('email')
+                .select('role')
                 .eq('user_id', session.user.id)
                 .single();
               
-              if (!error && profile?.email === 'hmalikovski@gmail.com') {
+              if (!error && profile?.role === 'admin') {
                 setIsAdmin(true);
               } else {
                 setIsAdmin(false);
