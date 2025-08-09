@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { InventoryItem, TIPOS, RAMOS, Nivel, Tipo, Ramo } from "@/types/inventory";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
 import {
@@ -47,6 +48,7 @@ import {
 const Inventory = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, isAdmin } = useAuth();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -188,64 +190,66 @@ const Inventory = () => {
       <Header />
 
       <main className="container mx-auto px-4 py-8">
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-scout-green/10 to-scout-green-light/10 border-scout-green/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2 text-scout-green">
-                <Package className="w-4 h-4" />
-                Total de Produtos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-scout-green">
-                {statistics.totalProducts}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Statistics Cards - Only show for admin */}
+        {isAdmin && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="bg-gradient-to-br from-scout-green/10 to-scout-green-light/10 border-scout-green/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2 text-scout-green">
+                  <Package className="w-4 h-4" />
+                  Total de Produtos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-scout-green">
+                  {statistics.totalProducts}
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2 text-blue-600">
-                <TrendingUp className="w-4 h-4" />
-                Total de Itens
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {statistics.totalItems}
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2 text-blue-600">
+                  <TrendingUp className="w-4 h-4" />
+                  Total de Itens
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {statistics.totalItems}
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border-purple-500/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2 text-purple-600">
-                <Package className="w-4 h-4" />
-                Tipos Diferentes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
-                {statistics.uniqueTypes}
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border-purple-500/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2 text-purple-600">
+                  <Package className="w-4 h-4" />
+                  Tipos Diferentes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">
+                  {statistics.uniqueTypes}
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-scout-brown/10 to-scout-brown-light/10 border-scout-brown/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2 text-scout-brown">
-                <DollarSign className="w-4 h-4" />
-                Valor Total
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-scout-brown">
-                {formatCurrency(statistics.totalValue)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="bg-gradient-to-br from-scout-brown/10 to-scout-brown-light/10 border-scout-brown/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2 text-scout-brown">
+                  <DollarSign className="w-4 h-4" />
+                  Valor Total
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-scout-brown">
+                  {formatCurrency(statistics.totalValue)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Filters */}
         <Card className="mb-8">
@@ -334,11 +338,13 @@ const Inventory = () => {
                       <TableHead>Nível</TableHead>
                       <TableHead>Ramo</TableHead>
                       <TableHead className="text-center">Quantidade</TableHead>
-                      <TableHead className="text-right">
-                        Valor Unitário
-                      </TableHead>
-                      <TableHead className="text-right">Valor Total</TableHead>
-                      <TableHead className="text-center">Ações</TableHead>
+                      {isAdmin && (
+                        <>
+                          <TableHead className="text-right">Valor Unitário</TableHead>
+                          <TableHead className="text-right">Valor Total</TableHead>
+                          <TableHead className="text-center">Ações</TableHead>
+                        </>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -366,59 +372,63 @@ const Inventory = () => {
                         <TableCell className="text-center font-semibold">
                           {item.quantidade}
                         </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(item.valorUnitario)}
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-scout-green">
-                          {formatCurrency(item.valorTotal)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(item)}
-                              className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
+                        {isAdmin && (
+                          <>
+                            <TableCell className="text-right">
+                              {formatCurrency(item.valorUnitario)}
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-scout-green">
+                              {formatCurrency(item.valorTotal)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex items-center justify-center gap-2">
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                                  onClick={() => handleEdit(item)}
+                                  className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Edit className="h-4 w-4" />
                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    Confirmar Exclusão
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tem certeza que deseja excluir o item "
-                                    {item.descricao}"? Esta ação não pode ser
-                                    desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>
-                                    Cancelar
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDelete(item)}
-                                    className="bg-red-500 hover:bg-red-600"
-                                  >
-                                    Excluir
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
+
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>
+                                        Confirmar Exclusão
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Tem certeza que deseja excluir o item "
+                                        {item.descricao}"? Esta ação não pode ser
+                                        desfeita.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>
+                                        Cancelar
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDelete(item)}
+                                        className="bg-red-500 hover:bg-red-600"
+                                      >
+                                        Excluir
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
