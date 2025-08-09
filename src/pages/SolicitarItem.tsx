@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { InventoryItem, Tipo, Ramo, Nivel } from "@/types/inventory";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -7,24 +8,89 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Send, ArrowLeft, Package } from "lucide-react";
+import { Send, ArrowLeft, Package, ShoppingCart } from "lucide-react";
+
+interface SelectedItem {
+  id: string;
+  descricao: string;
+  quantidade: number;
+}
 
 const SolicitarItem = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [loadingItems, setLoadingItems] = useState(true);
+  const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
 
   const [formData, setFormData] = useState({
     nome: "",
     grupoEscoteiro: "",
     email: "",
     telefone: "",
-    itemSolicitado: "",
-    quantidade: "",
     mensagemAdicional: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Carregar itens disponíveis
+  useEffect(() => {
+    loadItems();
+  }, []);
+
+  const loadItems = async () => {
+    try {
+      setLoadingItems(true);
+      const { data, error } = await supabase
+        .from("inventory_items")
+        .select("*")
+        .order("descricao", { ascending: true });
+
+      if (error) {
+        console.error("Erro ao carregar itens:", error);
+        toast({
+          title: "Erro ao Carregar",
+          description: "Não foi possível carregar os itens disponíveis.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const formattedItems: InventoryItem[] = data.map((item) => ({
+        id: item.id,
+        nivel: item.nivel as Nivel,
+        tipo: item.tipo as Tipo,
+        descricao: item.descricao,
+        quantidade: item.quantidade,
+        valorUnitario: item.valor_unitario,
+        valorTotal: item.valor_total,
+        ramo: item.ramo as Ramo,
+      }));
+
+      setItems(formattedItems);
+    } catch (error) {
+      console.error("Erro inesperado:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro inesperado ao carregar os itens.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingItems(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -33,16 +99,55 @@ const SolicitarItem = () => {
     }));
   };
 
+  const handleItemSelection = (item: InventoryItem, checked: boolean) => {
+    if (checked) {
+      setSelectedItems((prev) => [...prev, {
+        id: item.id,
+        descricao: item.descricao,
+        quantidade: 1,
+      }]);
+    } else {
+      setSelectedItems((prev) => prev.filter((selected) => selected.id !== item.id));
+    }
+  };
+
+  const handleQuantityChange = (itemId: string, quantidade: number) => {
+    setSelectedItems((prev) =>
+      prev.map((selected) =>
+        selected.id === itemId
+          ? { ...selected, quantidade: Math.max(1, quantidade) }
+          : selected
+      )
+    );
+  };
+
+  const getRamoColor = (ramo: string) => {
+    const colors: Record<string, string> = {
+      Lobinho: "bg-lobinho text-white",
+      Escoteiro: "bg-escoteiro text-white",
+      Sênior: "bg-senior text-white",
+      Pioneiro: "bg-pioneiro text-white",
+      Jovens: "bg-jovens text-white",
+      Escotista: "bg-escotista text-white",
+      Todos: "bg-todos text-white",
+    };
+    return colors[ramo] || "bg-gray-500 text-white";
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
       // Validações
-      const requiredFields = [
-        'nome', 'grupoEscoteiro', 'email', 'telefone', 
-        'itemSolicitado', 'quantidade'
-      ];
+      const requiredFields = ['nome', 'grupoEscoteiro', 'email', 'telefone'];
       
       for (const field of requiredFields) {
         if (!formData[field as keyof typeof formData]) {
@@ -55,11 +160,10 @@ const SolicitarItem = () => {
         }
       }
 
-      const quantidade = parseInt(formData.quantidade);
-      if (quantidade <= 0) {
+      if (selectedItems.length === 0) {
         toast({
           title: "Erro de Validação",
-          description: "A quantidade deve ser maior que zero.",
+          description: "Por favor, selecione pelo menos um item.",
           variant: "destructive",
         });
         return;
@@ -76,19 +180,20 @@ const SolicitarItem = () => {
         return;
       }
 
-      const requestData = {
+      // Criar uma solicitação para cada item selecionado
+      const requests = selectedItems.map(item => ({
         nome: formData.nome,
         grupo_escoteiro: formData.grupoEscoteiro,
         email: formData.email,
         telefone: formData.telefone,
-        item_solicitado: formData.itemSolicitado,
-        quantidade,
+        item_solicitado: item.descricao,
+        quantidade: item.quantidade,
         mensagem_adicional: formData.mensagemAdicional || null,
-      };
+      }));
 
       const { error } = await supabase
         .from("item_requests")
-        .insert([requestData]);
+        .insert(requests);
 
       if (error) {
         console.error("Erro ao salvar solicitação:", error);
@@ -102,7 +207,7 @@ const SolicitarItem = () => {
 
       toast({
         title: "Solicitação Enviada",
-        description: "Sua solicitação foi enviada com sucesso! Entraremos em contato em breve.",
+        description: `Sua solicitação de ${selectedItems.length} item(s) foi enviada com sucesso!`,
         className: "bg-scout-green text-white",
       });
 
@@ -112,10 +217,9 @@ const SolicitarItem = () => {
         grupoEscoteiro: "",
         email: "",
         telefone: "",
-        itemSolicitado: "",
-        quantidade: "",
         mensagemAdicional: "",
       });
+      setSelectedItems([]);
     } catch (error) {
       console.error("Erro inesperado:", error);
       toast({
@@ -147,17 +251,115 @@ const SolicitarItem = () => {
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
                 <Package className="w-6 h-6 text-scout-green" />
-                Solicitar Item
+                Solicitar Itens
               </h1>
               <p className="text-muted-foreground">
-                Preencha o formulário abaixo para solicitar um item do estoque
+                Selecione os itens desejados e preencha seus dados para fazer a solicitação
               </p>
             </div>
           </div>
 
+          {/* Lista de Itens Disponíveis */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5" />
+                Itens Disponíveis ({items.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingItems ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-scout-green mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Carregando itens...</p>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">Selecionar</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Ramo</TableHead>
+                        <TableHead className="text-center">Disponível</TableHead>
+                        <TableHead className="text-right">Valor Unit.</TableHead>
+                        <TableHead className="text-center">Quantidade</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {items.map((item) => {
+                        const isSelected = selectedItems.some(selected => selected.id === item.id);
+                        const selectedItem = selectedItems.find(selected => selected.id === item.id);
+                        
+                        return (
+                          <TableRow key={item.id} className="hover:bg-muted/50">
+                            <TableCell>
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={(checked) => handleItemSelection(item, checked as boolean)}
+                              />
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {item.descricao}
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-sm text-muted-foreground">
+                                {item.tipo}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={getRamoColor(item.ramo)}
+                                variant="outline"
+                              >
+                                {item.ramo}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center font-semibold">
+                              {item.quantidade}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatCurrency(item.valorUnitario)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {isSelected && (
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max={item.quantidade}
+                                  value={selectedItem?.quantidade || 1}
+                                  onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
+                                  className="w-20 text-center"
+                                />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {selectedItems.length > 0 && (
+                <div className="mt-4 p-4 bg-scout-green/5 rounded-lg border border-scout-green/20">
+                  <h4 className="font-medium text-scout-green mb-2">Itens Selecionados:</h4>
+                  <div className="space-y-1">
+                    {selectedItems.map((item) => (
+                      <div key={item.id} className="text-sm">
+                        <span className="font-medium">{item.descricao}</span> - Quantidade: {item.quantidade}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
-              <CardTitle>Formulário de Solicitação</CardTitle>
+              <CardTitle>Seus Dados</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -211,32 +413,6 @@ const SolicitarItem = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="itemSolicitado">Item Solicitado *</Label>
-                    <Input
-                      id="itemSolicitado"
-                      placeholder="Digite o item que deseja solicitar"
-                      value={formData.itemSolicitado}
-                      onChange={(e) => handleInputChange("itemSolicitado", e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="quantidade">Quantidade *</Label>
-                    <Input
-                      id="quantidade"
-                      type="number"
-                      min="1"
-                      placeholder="0"
-                      value={formData.quantidade}
-                      onChange={(e) => handleInputChange("quantidade", e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="mensagemAdicional">Mensagem Adicional</Label>
                   <Textarea
@@ -251,11 +427,11 @@ const SolicitarItem = () => {
                 <div className="flex gap-4 pt-6">
                   <Button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || selectedItems.length === 0}
                     className="flex-1 bg-scout-green hover:bg-scout-green-light"
                   >
                     <Send className="w-4 h-4 mr-2" />
-                    {isSubmitting ? "Enviando..." : "Enviar Solicitação"}
+                    {isSubmitting ? "Enviando..." : `Enviar Solicitação (${selectedItems.length} item${selectedItems.length !== 1 ? 's' : ''})`}
                   </Button>
 
                   <Button
