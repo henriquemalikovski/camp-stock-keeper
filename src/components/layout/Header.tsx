@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Package, FileText, LogIn, LogOut, Shield, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -17,6 +17,17 @@ const Header = () => {
   const location = useLocation();
   const { user, signOut, isAdmin } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -106,27 +117,43 @@ const Header = () => {
 
   return (
     <header 
-      className="relative bg-gradient-to-r from-scout-green/95 to-scout-green-light/95 shadow-elegant overflow-hidden" 
-      style={{
+      className={`sticky top-0 z-50 transition-all duration-300 ease-in-out ${
+        isScrolled 
+          ? 'bg-scout-green/95 backdrop-blur-md shadow-lg' 
+          : 'relative bg-gradient-to-r from-scout-green/95 to-scout-green-light/95 shadow-elegant'
+      } overflow-hidden`}
+      style={!isScrolled ? {
         backgroundImage: `url(${scoutHeroBg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundBlendMode: "overlay"
-      }}
+      } : {}}
     >
-      <div className="absolute inset-0 bg-scout-green/80"></div>
-      <div className="container mx-auto px-4 py-4 lg:py-6 relative z-10">
+      {!isScrolled && <div className="absolute inset-0 bg-scout-green/80"></div>}
+      <div className={`container mx-auto px-4 relative z-10 transition-all duration-300 ${
+        isScrolled ? 'py-2' : 'py-4 lg:py-6'
+      }`}>
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
           <div className="flex items-center space-x-2 lg:space-x-3 min-w-0 flex-1">
-            <img src="/Logo.svg" alt="Logo" className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 flex-shrink-0" />
+            <img 
+              src="/Logo.svg" 
+              alt="Logo" 
+              className={`flex-shrink-0 transition-all duration-300 ${
+                isScrolled ? 'w-8 h-8 sm:w-10 sm:h-10' : 'w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20'
+              }`} 
+            />
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-primary-foreground truncate">
+              <h1 className={`font-bold text-primary-foreground truncate transition-all duration-300 ${
+                isScrolled ? 'text-sm sm:text-base lg:text-lg' : 'text-lg sm:text-xl lg:text-2xl'
+              }`}>
                 Grupo Escoteiro Arés
               </h1>
-              <p className="text-primary-foreground/80 text-xs sm:text-sm hidden sm:block">
-                Controle de Estoque
-              </p>
+              {!isScrolled && (
+                <p className="text-primary-foreground/80 text-xs sm:text-sm hidden sm:block">
+                  Controle de Estoque
+                </p>
+              )}
             </div>
           </div>
 
@@ -138,8 +165,12 @@ const Header = () => {
           {/* Mobile Menu Button */}
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" className="lg:hidden text-primary-foreground hover:bg-white/10">
-                <Menu className="h-5 w-5" />
+              <Button 
+                variant="ghost" 
+                size={isScrolled ? "sm" : "sm"} 
+                className="lg:hidden text-primary-foreground hover:bg-white/10"
+              >
+                <Menu className={`transition-all duration-300 ${isScrolled ? 'h-4 w-4' : 'h-5 w-5'}`} />
                 <span className="sr-only">Abrir menu</span>
               </Button>
             </SheetTrigger>
