@@ -489,11 +489,11 @@ const SolicitarItem = () => {
                   />
                 </div>
 
-                <div className="flex gap-4 pt-6">
+                <div className="flex flex-col sm:flex-row gap-3 pt-6">
                   <Button
                     type="submit"
                     disabled={isSubmitting || selectedItems.length === 0}
-                    className="flex-1 bg-scout-green hover:bg-scout-green-light"
+                    className="w-full sm:flex-1 bg-scout-green hover:bg-scout-green-light"
                   >
                     <Send className="w-4 h-4 mr-2" />
                     {isSubmitting ? "Enviando..." : `Enviar Solicitação (${selectedItems.length} item${selectedItems.length !== 1 ? 's' : ''})`}
@@ -503,6 +503,7 @@ const SolicitarItem = () => {
                     type="button"
                     variant="outline"
                     onClick={() => navigate("/")}
+                    className="w-full sm:w-auto"
                   >
                     Cancelar
                   </Button>

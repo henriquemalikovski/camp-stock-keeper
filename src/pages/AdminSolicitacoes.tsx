@@ -112,7 +112,7 @@ const AdminSolicitacoes = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-scout-green" />
@@ -147,68 +147,130 @@ const AdminSolicitacoes = () => {
                 </p>
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Grupo Escoteiro</TableHead>
-                      <TableHead>Contato</TableHead>
-                      <TableHead>Item Solicitado</TableHead>
-                      <TableHead className="text-center">Quantidade</TableHead>
-                      <TableHead>Mensagem</TableHead>
-                      <TableHead>Data</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {requests.map((request) => (
-                      <TableRow key={request.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">
-                          {request.nome}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-scout-green/10 text-scout-green border-scout-green/20">
-                            {request.grupo_escoteiro}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1 text-sm">
-                              <Mail className="w-3 h-3" />
-                              <span className="text-muted-foreground">{request.email}</span>
+              <>
+                {/* Mobile View - Cards */}
+                <div className="block lg:hidden space-y-4">
+                  {requests.map((request) => (
+                    <Card key={request.id} className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm leading-tight">{request.nome}</h3>
+                            <Badge variant="outline" className="bg-scout-green/10 text-scout-green border-scout-green/20 mt-1 text-xs">
+                              {request.grupo_escoteiro}
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground ml-2 flex-shrink-0">
+                            {formatDate(request.created_at)}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <span className="text-muted-foreground text-xs">Item:</span>
+                            <div className="font-medium text-sm">{request.item_solicitado}</div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="text-muted-foreground text-xs">Quantidade:</span>
+                              <div className="font-semibold text-scout-green">{request.quantidade}</div>
                             </div>
-                            <div className="flex items-center gap-1 text-sm">
-                              <Phone className="w-3 h-3" />
-                              <span className="text-muted-foreground">{request.telefone}</span>
+                            <div>
+                              <span className="text-muted-foreground text-xs">Contato:</span>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1 text-xs">
+                                  <Mail className="w-3 h-3" />
+                                  <span className="truncate">{request.email}</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs">
+                                  <Phone className="w-3 h-3" />
+                                  <span>{request.telefone}</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {request.item_solicitado}
-                        </TableCell>
-                        <TableCell className="text-center font-semibold text-scout-green">
-                          {request.quantidade}
-                        </TableCell>
-                        <TableCell>
-                          {request.mensagem_adicional ? (
-                            <div className="flex items-start gap-1">
-                              <MessageSquare className="w-3 h-3 mt-0.5 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground max-w-xs truncate">
-                                {request.mensagem_adicional}
-                              </span>
+                          
+                          {request.mensagem_adicional && (
+                            <div className="pt-2 border-t">
+                              <span className="text-muted-foreground text-xs">Mensagem:</span>
+                              <div className="flex items-start gap-1 mt-1">
+                                <MessageSquare className="w-3 h-3 mt-0.5 text-muted-foreground flex-shrink-0" />
+                                <span className="text-xs text-muted-foreground">
+                                  {request.mensagem_adicional}
+                                </span>
+                              </div>
                             </div>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">-</span>
                           )}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(request.created_at)}
-                        </TableCell>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Desktop View - Table */}
+                <div className="hidden lg:block rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[150px]">Nome</TableHead>
+                        <TableHead className="min-w-[150px]">Grupo Escoteiro</TableHead>
+                        <TableHead className="min-w-[200px]">Contato</TableHead>
+                        <TableHead className="min-w-[200px]">Item Solicitado</TableHead>
+                        <TableHead className="text-center min-w-[100px]">Quantidade</TableHead>
+                        <TableHead className="min-w-[200px]">Mensagem</TableHead>
+                        <TableHead className="min-w-[150px]">Data</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {requests.map((request) => (
+                        <TableRow key={request.id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">
+                            {request.nome}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="bg-scout-green/10 text-scout-green border-scout-green/20">
+                              {request.grupo_escoteiro}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1 text-sm">
+                                <Mail className="w-3 h-3" />
+                                <span className="text-muted-foreground">{request.email}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-sm">
+                                <Phone className="w-3 h-3" />
+                                <span className="text-muted-foreground">{request.telefone}</span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {request.item_solicitado}
+                          </TableCell>
+                          <TableCell className="text-center font-semibold text-scout-green">
+                            {request.quantidade}
+                          </TableCell>
+                          <TableCell>
+                            {request.mensagem_adicional ? (
+                              <div className="flex items-start gap-1">
+                                <MessageSquare className="w-3 h-3 mt-0.5 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground max-w-xs truncate">
+                                  {request.mensagem_adicional}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(request.created_at)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
