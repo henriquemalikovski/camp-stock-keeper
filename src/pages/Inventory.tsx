@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { InventoryItem, TIPOS, RAMOS, Nivel, Tipo, Ramo } from "@/types/inventory";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import Header from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -42,15 +42,11 @@ import {
   DollarSign,
   Edit,
   Trash2,
-  FileText,
-  ClipboardList,
-  LogOut,
 } from "lucide-react";
 
 const Inventory = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, isAdmin, signOut } = useAuth();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -189,41 +185,9 @@ const Inventory = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Inventário do Estoque</h1>
-          <div className="flex gap-2 flex-wrap">
-            <Button onClick={() => navigate('/solicitar')} variant="outline" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Solicitar Item
-            </Button>
-            {isAdmin && (
-              <>
-                <Button onClick={() => navigate('/solicitacoes')} variant="outline" className="flex items-center gap-2">
-                  <ClipboardList className="h-4 w-4" />
-                  Ver Solicitações
-                </Button>
-                <Button onClick={() => navigate('/cadastro')} className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  Cadastrar Item
-                </Button>
-              </>
-            )}
-            {user ? (
-              <Button onClick={signOut} variant="outline" className="flex items-center gap-2">
-                <LogOut className="h-4 w-4" />
-                Sair
-              </Button>
-            ) : (
-              <Button onClick={() => navigate('/auth')} variant="outline">
-                Login
-              </Button>
-            )}
-          </div>
-        </div>
+      <Header />
 
-      <main>
+      <main className="container mx-auto px-4 py-8">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gradient-to-br from-scout-green/10 to-scout-green-light/10 border-scout-green/20">
@@ -409,55 +373,51 @@ const Inventory = () => {
                           {formatCurrency(item.valorTotal)}
                         </TableCell>
                         <TableCell className="text-center">
-                          {isAdmin ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEdit(item)}
-                                className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(item)}
+                              className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
 
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Confirmar Exclusão
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja excluir o item "
+                                    {item.descricao}"? Esta ação não pode ser
+                                    desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>
+                                    Cancelar
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(item)}
+                                    className="bg-red-500 hover:bg-red-600"
                                   >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      Confirmar Exclusão
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Tem certeza que deseja excluir o item "
-                                      {item.descricao}"? Esta ação não pode ser
-                                      desfeita.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>
-                                      Cancelar
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDelete(item)}
-                                      className="bg-red-500 hover:bg-red-600"
-                                    >
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">-</span>
-                          )}
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -480,7 +440,6 @@ const Inventory = () => {
           </CardContent>
         </Card>
       </main>
-      </div>
     </div>
   );
 };
