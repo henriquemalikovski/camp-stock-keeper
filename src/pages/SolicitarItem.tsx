@@ -489,24 +489,27 @@ const SolicitarItem = () => {
                   </div>
                 </>
               )}
-
-              {selectedItems.length > 0 && (
-                <div className="mt-4 p-4 bg-scout-green/5 rounded-lg border border-scout-green/20">
-                  <h4 className="font-medium text-scout-green mb-2">
-                    Itens Selecionados:
-                  </h4>
-                  <div className="space-y-1">
-                    {selectedItems.map((item) => (
-                      <div key={item.id} className="text-sm">
-                        <span className="font-medium">{item.descricao}</span> -
-                        Quantidade: {item.quantidade}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
+
+          {/* Itens Selecionados - Fora do scroll */}
+          {selectedItems.length > 0 && (
+            <Card className="mb-8">
+              <CardContent className="p-4 bg-scout-green/5 border border-scout-green/20">
+                <h4 className="font-medium text-scout-green mb-2">
+                  Itens Selecionados:
+                </h4>
+                <div className="space-y-1">
+                  {selectedItems.map((item) => (
+                    <div key={item.id} className="text-sm">
+                      <span className="font-medium">{item.descricao}</span> -
+                      Quantidade: {item.quantidade}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
