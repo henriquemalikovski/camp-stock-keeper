@@ -236,8 +236,8 @@ const SolicitarItem = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-8">
             <Button
               variant="outline"
@@ -274,72 +274,137 @@ const SolicitarItem = () => {
                   <p className="text-muted-foreground">Carregando itens...</p>
                 </div>
               ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">Selecionar</TableHead>
-                        <TableHead>Descrição</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Ramo</TableHead>
-                        <TableHead className="text-center">Disponível</TableHead>
-                        <TableHead className="text-right">Valor Unit.</TableHead>
-                        <TableHead className="text-center">Quantidade</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {items.map((item) => {
-                        const isSelected = selectedItems.some(selected => selected.id === item.id);
-                        const selectedItem = selectedItems.find(selected => selected.id === item.id);
-                        
-                        return (
-                          <TableRow key={item.id} className="hover:bg-muted/50">
-                            <TableCell>
+                <>
+                  {/* Mobile View - Cards */}
+                  <div className="block lg:hidden space-y-4">
+                    {items.map((item) => {
+                      const isSelected = selectedItems.some(selected => selected.id === item.id);
+                      const selectedItem = selectedItems.find(selected => selected.id === item.id);
+                      
+                      return (
+                        <Card key={item.id} className="p-4">
+                          <div className="space-y-3">
+                            <div className="flex items-start gap-3">
                               <Checkbox
                                 checked={isSelected}
                                 onCheckedChange={(checked) => handleItemSelection(item, checked as boolean)}
+                                className="mt-1"
                               />
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {item.descricao}
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-sm text-muted-foreground">
-                                {item.tipo}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                className={getRamoColor(item.ramo)}
-                                variant="outline"
-                              >
-                                {item.ramo}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-center font-semibold">
-                              {item.quantidade}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {formatCurrency(item.valorUnitario)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {isSelected && (
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-medium text-sm leading-tight">{item.descricao}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge
+                                    className={`${getRamoColor(item.ramo)} text-xs`}
+                                    variant="outline"
+                                  >
+                                    {item.ramo}
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">{item.tipo}</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <span className="text-muted-foreground">Disponível:</span>
+                                <div className="font-semibold">{item.quantidade}</div>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Valor:</span>
+                                <div className="font-medium">{formatCurrency(item.valorUnitario)}</div>
+                              </div>
+                            </div>
+
+                            {isSelected && (
+                              <div className="pt-2 border-t">
+                                <Label htmlFor={`qty-${item.id}`} className="text-sm font-medium">
+                                  Quantidade desejada:
+                                </Label>
                                 <Input
+                                  id={`qty-${item.id}`}
                                   type="number"
                                   min="1"
                                   max={item.quantidade}
                                   value={selectedItem?.quantidade || 1}
                                   onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
-                                  className="w-20 text-center"
+                                  className="w-full mt-1"
                                 />
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                              </div>
+                            )}
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+
+                  {/* Desktop View - Table */}
+                  <div className="hidden lg:block rounded-md border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">Selecionar</TableHead>
+                          <TableHead className="min-w-[200px]">Descrição</TableHead>
+                          <TableHead className="min-w-[120px]">Tipo</TableHead>
+                          <TableHead className="min-w-[100px]">Ramo</TableHead>
+                          <TableHead className="text-center min-w-[100px]">Disponível</TableHead>
+                          <TableHead className="text-right min-w-[120px]">Valor Unit.</TableHead>
+                          <TableHead className="text-center min-w-[120px]">Quantidade</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {items.map((item) => {
+                          const isSelected = selectedItems.some(selected => selected.id === item.id);
+                          const selectedItem = selectedItems.find(selected => selected.id === item.id);
+                          
+                          return (
+                            <TableRow key={item.id} className="hover:bg-muted/50">
+                              <TableCell>
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={(checked) => handleItemSelection(item, checked as boolean)}
+                                />
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {item.descricao}
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-sm text-muted-foreground">
+                                  {item.tipo}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  className={getRamoColor(item.ramo)}
+                                  variant="outline"
+                                >
+                                  {item.ramo}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-center font-semibold">
+                                {item.quantidade}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {formatCurrency(item.valorUnitario)}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {isSelected && (
+                                  <Input
+                                    type="number"
+                                    min="1"
+                                    max={item.quantidade}
+                                    value={selectedItem?.quantidade || 1}
+                                    onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
+                                    className="w-20 text-center"
+                                  />
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
               )}
 
               {selectedItems.length > 0 && (

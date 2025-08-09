@@ -189,7 +189,7 @@ const Inventory = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Statistics Cards - Only show for admin */}
         {isAdmin && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -329,111 +329,199 @@ const Inventory = () => {
                 <p className="text-muted-foreground">Carregando itens...</p>
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Nível</TableHead>
-                      <TableHead>Ramo</TableHead>
-                      <TableHead className="text-center">Quantidade</TableHead>
-                      <TableHead className="text-right">Valor Unitário</TableHead>
-                      {isAdmin && (
-                        <>
-                          <TableHead className="text-right">Valor Total</TableHead>
-                          <TableHead className="text-center">Ações</TableHead>
-                        </>
-                      )}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredItems.map((item) => (
-                      <TableRow key={item.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">
-                          {item.descricao}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground">
-                            {item.tipo}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm">{item.nivel}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            className={getRamoColor(item.ramo)}
-                            variant="outline"
-                          >
-                            {item.ramo}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-center font-semibold">
-                          {item.quantidade}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(item.valorUnitario)}
-                        </TableCell>
+              <>
+                {/* Mobile View - Cards */}
+                <div className="block md:hidden space-y-4">
+                  {filteredItems.map((item) => (
+                    <Card key={item.id} className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm leading-tight">{item.descricao}</h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge
+                                className={`${getRamoColor(item.ramo)} text-xs`}
+                                variant="outline"
+                              >
+                                {item.ramo}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">{item.tipo}</span>
+                            </div>
+                          </div>
+                          {isAdmin && (
+                            <div className="flex gap-1 ml-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(item)}
+                                className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Tem certeza que deseja excluir o item "{item.descricao}"? Esta ação não pode ser desfeita.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDelete(item)}
+                                      className="bg-red-500 hover:bg-red-600"
+                                    >
+                                      Excluir
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Nível:</span>
+                            <div className="font-medium">{item.nivel}</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Quantidade:</span>
+                            <div className="font-semibold">{item.quantidade}</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Valor Unit.:</span>
+                            <div className="font-medium">{formatCurrency(item.valorUnitario)}</div>
+                          </div>
+                          {isAdmin && (
+                            <div>
+                              <span className="text-muted-foreground">Valor Total:</span>
+                              <div className="font-bold text-scout-green">{formatCurrency(item.valorTotal)}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Desktop View - Table */}
+                <div className="hidden md:block rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[200px]">Descrição</TableHead>
+                        <TableHead className="min-w-[120px]">Tipo</TableHead>
+                        <TableHead className="min-w-[100px]">Nível</TableHead>
+                        <TableHead className="min-w-[100px]">Ramo</TableHead>
+                        <TableHead className="text-center min-w-[100px]">Quantidade</TableHead>
+                        <TableHead className="text-right min-w-[120px]">Valor Unitário</TableHead>
                         {isAdmin && (
                           <>
-                            <TableCell className="text-right font-bold text-scout-green">
-                              {formatCurrency(item.valorTotal)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleEdit(item)}
-                                  className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>
-                                        Confirmar Exclusão
-                                      </AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Tem certeza que deseja excluir o item "
-                                        {item.descricao}"? Esta ação não pode ser
-                                        desfeita.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>
-                                        Cancelar
-                                      </AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => handleDelete(item)}
-                                        className="bg-red-500 hover:bg-red-600"
-                                      >
-                                        Excluir
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </TableCell>
+                            <TableHead className="text-right min-w-[120px]">Valor Total</TableHead>
+                            <TableHead className="text-center min-w-[100px]">Ações</TableHead>
                           </>
                         )}
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredItems.map((item) => (
+                        <TableRow key={item.id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">
+                            {item.descricao}
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-muted-foreground">
+                              {item.tipo}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">{item.nivel}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={getRamoColor(item.ramo)}
+                              variant="outline"
+                            >
+                              {item.ramo}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center font-semibold">
+                            {item.quantidade}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(item.valorUnitario)}
+                          </TableCell>
+                          {isAdmin && (
+                            <>
+                              <TableCell className="text-right font-bold text-scout-green">
+                                {formatCurrency(item.valorTotal)}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEdit(item)}
+                                    className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>
+                                          Confirmar Exclusão
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Tem certeza que deseja excluir o item "
+                                          {item.descricao}"? Esta ação não pode ser
+                                          desfeita.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>
+                                          Cancelar
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => handleDelete(item)}
+                                          className="bg-red-500 hover:bg-red-600"
+                                        >
+                                          Excluir
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </TableCell>
+                            </>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
 
             {!loading && filteredItems.length === 0 && (
