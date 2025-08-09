@@ -25,6 +25,8 @@ interface SelectedItem {
   id: string;
   descricao: string;
   quantidade: number;
+  tipo: string;
+  ramo: string;
 }
 
 const SolicitarItem = () => {
@@ -108,6 +110,8 @@ const SolicitarItem = () => {
           id: item.id,
           descricao: item.descricao,
           quantidade: 1,
+          tipo: item.tipo,
+          ramo: item.ramo,
         },
       ]);
     } else {
@@ -274,7 +278,7 @@ const SolicitarItem = () => {
           </div>
 
           {/* Lista de Itens Disponíveis */}
-          <Card className="mb-8">
+          <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-4">
                 <ShoppingCart className="w-5 h-5" />
@@ -499,11 +503,15 @@ const SolicitarItem = () => {
                 <h4 className="font-medium text-scout-green mb-2">
                   Itens Selecionados:
                 </h4>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {selectedItems.map((item) => (
-                    <div key={item.id} className="text-sm">
-                      <span className="font-medium">{item.descricao}</span> -
-                      Quantidade: {item.quantidade}
+                    <div key={item.id} className="text-sm flex flex-wrap items-center gap-2">
+                      <span className="font-medium">{item.descricao}</span>
+                      <Badge className={`${getRamoColor(item.ramo)} text-xs`} variant="outline">
+                        {item.ramo}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">{item.tipo}</span>
+                      <span className="text-muted-foreground">• Qtd: {item.quantidade}</span>
                     </div>
                   ))}
                 </div>
