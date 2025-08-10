@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -122,10 +123,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signOut = async () => {
+    // Evitar chamadas duplicadas
+    if (isSigningOut) {
+      console.log('Logout já em andamento, ignorando...');
+      return;
+    }
+
     try {
+      setIsSigningOut(true);
       console.log('Iniciando logout...');
       
-      // Forçar logout global e limpar todas as sessões
+      // Verificar se há sessão ativa antes de tentar logout
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession) {
+        console.log('Nenhuma sessão ativa encontrada, limpando estado local...');
+        // Se não há sessão, apenas limpar o estado local
+        setUser(null);
+        setSession(null);
+        setIsAdmin(false);
+        localStorage.removeItem('supabase.auth.token');
+        
+        toast({
+          title: "Logout realizado",
+          description: "Você foi desconectado do sistema.",
+        });
+        
+        window.location.href = '/';
+        return;
+      }
+
+      // Só tentar logout se há sessão ativa
+      console.log('Sessão ativa encontrada, fazendo logout...');
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       console.log('Resultado do logout:', { error });
@@ -144,11 +173,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           description: "Você foi desconectado do sistema.",
         });
       } else {
-        console.error('Erro no logout:', error);
-        toast({
-          title: "Logout realizado",
-          description: "Você foi desconectado do sistema.",
-        });
+        // Se erro for "session not found", tratar como sucesso
+        if (error.message?.includes('Session not found') || error.message?.includes('session_not_found')) {
+          console.log('Sessão já expirada, logout tratado como sucesso');
+          toast({
+            title: "Logout realizado",
+            description: "Você foi desconectado do sistema.",
+          });
+        } else {
+          console.error('Erro no logout:', error);
+          toast({
+            title: "Logout realizado",
+            description: "Você foi desconectado do sistema.",
+          });
+        }
       }
       
       // Forçar redirecionamento para página inicial
@@ -169,6 +207,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       // Forçar redirecionamento
       window.location.href = '/';
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
