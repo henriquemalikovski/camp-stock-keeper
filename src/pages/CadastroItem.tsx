@@ -110,6 +110,7 @@ const CadastroItem = () => {
     'Certificado': 2.00,
     'Distintivo de Progressão': 3.90,
     'Distintivo': 1.00,
+    'Cordão': 2.50,
   };
 
   const handleInputChange = (field: string, value: string) => {
