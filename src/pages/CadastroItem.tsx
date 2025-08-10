@@ -323,7 +323,7 @@ const CadastroItem = () => {
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                       <SelectContent>
-                        {TIPOS.map((tipo) => (
+                        {[...TIPOS].sort().map((tipo) => (
                           <SelectItem key={tipo} value={tipo}>
                             {tipo}
                           </SelectItem>

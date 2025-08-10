@@ -19,11 +19,11 @@ export const NIVEIS: Nivel[] = ['Não Tem', 'Nivel 1', 'Nivel 2', 'Nivel 3'];
 
 export const TIPOS: Tipo[] = [
   'Arganel',
-  'Certificado', 
+  'Certificado',
+  'Cordão',
   'Distintivo',
-  'Distintivo de Progressão',
   'Distintivo de Especialidade',
-  'Cordão'
+  'Distintivo de Progressão'
 ];
 
 export const RAMOS: Ramo[] = [

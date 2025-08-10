@@ -296,7 +296,7 @@ const Inventory = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os tipos</SelectItem>
-                    {TIPOS.map((tipo) => (
+                    {[...TIPOS].sort().map((tipo) => (
                       <SelectItem key={tipo} value={tipo}>
                         {tipo}
                       </SelectItem>
