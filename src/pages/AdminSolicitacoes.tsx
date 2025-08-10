@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ClipboardList, Phone, Mail, MessageSquare, CheckCircle, Filter } from "lucide-react";
+import { ClipboardList, Phone, Mail, MessageSquare, CheckCircle, Filter, Clock, CheckCircle2, TrendingUp } from "lucide-react";
 
 interface ItemRequest {
   id: string;
@@ -37,6 +37,7 @@ const AdminSolicitacoes = () => {
   const { toast } = useToast();
   
   const [requests, setRequests] = useState<ItemRequest[]>([]);
+  const [allRequests, setAllRequests] = useState<ItemRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("pendente");
 
@@ -57,19 +58,14 @@ const AdminSolicitacoes = () => {
     try {
       setLoading(true);
       
-      let query = supabase
+      // Primeiro, buscar todas as solicitações para estatísticas
+      const { data: allData, error: allError } = await supabase
         .from("item_requests")
-        .select("*");
-      
-      // Aplicar filtro por status se não for "todas"
-      if (statusFilter !== "todas") {
-        query = query.eq("status", statusFilter);
-      }
-      
-      const { data, error } = await query.order("created_at", { ascending: false });
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Erro ao carregar solicitações:", error);
+      if (allError) {
+        console.error("Erro ao carregar todas as solicitações:", allError);
         toast({
           title: "Erro ao Carregar",
           description: "Não foi possível carregar as solicitações.",
@@ -78,7 +74,15 @@ const AdminSolicitacoes = () => {
         return;
       }
 
-      setRequests(data || []);
+      setAllRequests(allData || []);
+
+      // Aplicar filtro para exibição
+      if (statusFilter === "todas") {
+        setRequests(allData || []);
+      } else {
+        const filteredData = (allData || []).filter(request => request.status === statusFilter);
+        setRequests(filteredData);
+      }
     } catch (error) {
       console.error("Erro inesperado:", error);
       toast({
@@ -169,6 +173,13 @@ const AdminSolicitacoes = () => {
     });
   };
 
+  // Cálculo das estatísticas
+  const statistics = {
+    total: allRequests.length,
+    pendente: allRequests.filter(req => req.status === "pendente").length,
+    resolvida: allRequests.filter(req => req.status === "resolvida").length,
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -192,34 +203,97 @@ const AdminSolicitacoes = () => {
       <Header />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        {/* Header Section */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ClipboardList className="w-6 h-6 text-scout-green" />
-            {getPageTitle()}
-          </h1>
-          <p className="text-muted-foreground">
-            {getPageDescription()}
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-3">
+                <ClipboardList className="w-7 h-7 text-primary" />
+                Gerenciar Solicitações
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Visualize e gerencie todas as solicitações de itens dos grupos escoteiros
+              </p>
+            </div>
+            
+            {/* Modern Filter */}
+            <div className="flex items-center gap-3 bg-card p-4 rounded-lg border shadow-sm">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">Filtrar:</span>
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-44 bg-background border-muted hover:border-primary/50 transition-colors">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-background border border-border shadow-lg">
+                  <SelectItem value="pendente" className="hover:bg-muted/80">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-orange-500" />
+                      <span>Pendentes</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="resolvida" className="hover:bg-muted/80">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      <span>Resolvidas</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="todas" className="hover:bg-muted/80">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-blue-500" />
+                      <span>Todas</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
-        {/* Filtro por Status */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Filtrar por status:</span>
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pendente">Pendentes</SelectItem>
-                <SelectItem value="resolvida">Resolvidas</SelectItem>
-                <SelectItem value="todas">Todas</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total de Solicitações</p>
+                  <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">{statistics.total}</p>
+                </div>
+                <div className="h-12 w-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Pendentes</p>
+                  <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{statistics.pendente}</p>
+                </div>
+                <div className="h-12 w-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Resolvidas</p>
+                  <p className="text-3xl font-bold text-green-900 dark:text-green-100">{statistics.resolvida}</p>
+                </div>
+                <div className="h-12 w-12 bg-green-500 rounded-lg flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Card>
