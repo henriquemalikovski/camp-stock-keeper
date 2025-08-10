@@ -103,7 +103,29 @@ const CadastroItem = () => {
     }
   };
 
+  // Preços padrão por tipo de item
+  const defaultPrices: Record<Tipo, number> = {
+    'Distintivo de Especialidade': 1.40,
+    'Arganel': 4.00,
+    'Certificado': 2.00,
+    'Distintivo de Progressão': 3.90,
+    'Distintivo': 1.00,
+  };
+
   const handleInputChange = (field: string, value: string) => {
+    // Aplicar preço padrão quando o tipo for selecionado
+    if (field === 'tipo' && value && !isEditing) {
+      const defaultPrice = defaultPrices[value as Tipo];
+      if (defaultPrice) {
+        setFormData((prev) => ({
+          ...prev,
+          tipo: value as Tipo,
+          valorUnitario: defaultPrice.toString(),
+        }));
+        return;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [field]: value,
