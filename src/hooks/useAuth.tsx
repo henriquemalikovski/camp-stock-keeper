@@ -36,49 +36,93 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Check if user is admin
-          setTimeout(async () => {
-            try {
-              const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('user_id', session.user.id)
-                .single();
+        if (!mounted) return;
+
+        console.log('Auth state change:', event, session?.user?.email);
+
+        // Só atualizar se não estamos fazendo logout
+        if (!isSigningOut) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            // Check if user is admin
+            setTimeout(async () => {
+              if (!mounted || isSigningOut) return;
               
-              if (!error && profile?.role === 'admin') {
-                setIsAdmin(true);
-              } else {
-                setIsAdmin(false);
+              try {
+                const { data: profile, error } = await supabase
+                  .from('profiles')
+                  .select('role')
+                  .eq('user_id', session.user.id)
+                  .single();
+                
+                if (!error && profile?.role === 'admin' && mounted && !isSigningOut) {
+                  setIsAdmin(true);
+                } else {
+                  setIsAdmin(false);
+                }
+              } catch (error) {
+                console.error('Error checking admin status:', error);
+                if (mounted && !isSigningOut) {
+                  setIsAdmin(false);
+                }
               }
-            } catch (error) {
-              console.error('Error checking admin status:', error);
-              setIsAdmin(false);
-            }
-          }, 0);
-        } else {
-          setIsAdmin(false);
+            }, 0);
+          } else {
+            setIsAdmin(false);
+          }
         }
         
-        setLoading(false);
+        if (mounted && !isSigningOut) {
+          setLoading(false);
+        }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Check for existing session only once
+    const initializeAuth = async () => {
+      if (!mounted) return;
+      
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted || isSigningOut) return;
+        
+        if (!error && session) {
+          console.log('Sessão existente encontrada:', session.user?.email);
+          setSession(session);
+          setUser(session.user);
+        } else {
+          console.log('Nenhuma sessão existente');
+          setSession(null);
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
+        if (mounted && !isSigningOut) {
+          setSession(null);
+          setUser(null);
+        }
+      } finally {
+        if (mounted && !isSigningOut) {
+          setLoading(false);
+        }
+      }
+    };
 
-    return () => subscription.unsubscribe();
-  }, []);
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [isSigningOut]); // Adicionar isSigningOut como dependência
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -133,23 +177,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setIsSigningOut(true);
       console.log('Iniciando logout...');
       
+      // Limpar primeiro o estado local para evitar re-login automático
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+      
+      // Limpar todos os dados do Supabase no localStorage
+      const keysToRemove = [
+        'supabase.auth.token',
+        'sb-wxtuhsfmhtyaebffmmdm-auth-token',
+        'sb-wxtuhsfmhtyaebffmmdm-auth-token-code-verifier'
+      ];
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+      
       // Verificar se há sessão ativa antes de tentar logout
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       
       if (!currentSession) {
-        console.log('Nenhuma sessão ativa encontrada, limpando estado local...');
-        // Se não há sessão, apenas limpar o estado local
-        setUser(null);
-        setSession(null);
-        setIsAdmin(false);
-        localStorage.removeItem('supabase.auth.token');
+        console.log('Nenhuma sessão ativa encontrada');
         
         toast({
           title: "Logout realizado",
           description: "Você foi desconectado do sistema.",
         });
         
-        window.location.href = '/';
+        // Aguardar um pouco antes do redirecionamento
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 100);
         return;
       }
 
@@ -158,14 +217,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       console.log('Resultado do logout:', { error });
-      
-      // Sempre limpar o estado local, mesmo se houver erro
-      setUser(null);
-      setSession(null);
-      setIsAdmin(false);
-      
-      // Limpar localStorage como backup
-      localStorage.removeItem('supabase.auth.token');
       
       if (!error) {
         toast({
@@ -189,8 +240,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
       }
       
-      // Forçar redirecionamento para página inicial
-      window.location.href = '/';
+      // Aguardar um pouco antes do redirecionamento para garantir que o auth state foi atualizado
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
+      
     } catch (err) {
       console.error('Erro inesperado no logout:', err);
       
@@ -198,7 +252,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(null);
       setSession(null);
       setIsAdmin(false);
-      localStorage.removeItem('supabase.auth.token');
+      
+      // Limpar localStorage novamente
+      const keysToRemove = [
+        'supabase.auth.token',
+        'sb-wxtuhsfmhtyaebffmmdm-auth-token',
+        'sb-wxtuhsfmhtyaebffmmdm-auth-token-code-verifier'
+      ];
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
       
       toast({
         title: "Logout realizado",
@@ -206,9 +271,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
       
       // Forçar redirecionamento
-      window.location.href = '/';
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     } finally {
-      setIsSigningOut(false);
+      // Só resetar o flag após o redirecionamento
+      setTimeout(() => {
+        setIsSigningOut(false);
+      }, 200);
     }
   };
 
