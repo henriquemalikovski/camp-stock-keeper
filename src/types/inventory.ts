@@ -1,6 +1,6 @@
 export type Nivel = 'Não Tem' | 'Nivel 1' | 'Nivel 2' | 'Nivel 3';
 
-export type Tipo = 'Arganel' | 'Certificado' | 'Distintivo' | 'Distintivo de Progressão' | 'Distintivo Especialidade';
+export type Tipo = 'Arganel' | 'Certificado' | 'Distintivo' | 'Distintivo de Progressão' | 'Distintivo de Especialidade';
 
 export type Ramo = 'Lobinho' | 'Escoteiro' | 'Sênior' | 'Pioneiro' | 'Jovens' | 'Escotista' | 'Todos';
 
@@ -22,7 +22,7 @@ export const TIPOS: Tipo[] = [
   'Certificado', 
   'Distintivo',
   'Distintivo de Progressão',
-  'Distintivo Especialidade'
+  'Distintivo de Especialidade'
 ];
 
 export const RAMOS: Ramo[] = [
