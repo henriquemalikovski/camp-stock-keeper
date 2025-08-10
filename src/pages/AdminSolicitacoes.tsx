@@ -139,9 +139,17 @@ const AdminSolicitacoes = () => {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case "pendente": return "default";
+      case "pendente": return "outline";
       case "resolvida": return "secondary";
       default: return "outline";
+    }
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case "pendente": return "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-700";
+      case "resolvida": return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700";
+      default: return "";
     }
   };
 
@@ -229,7 +237,7 @@ const AdminSolicitacoes = () => {
                 <SelectContent className="bg-background border border-border shadow-lg">
                   <SelectItem value="pendente" className="hover:bg-muted/80">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-orange-500" />
+                      <Clock className="w-4 h-4 text-yellow-500" />
                       <span>Pendentes</span>
                     </div>
                   </SelectItem>
@@ -267,14 +275,14 @@ const AdminSolicitacoes = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800">
+          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 border-yellow-200 dark:border-yellow-800">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Pendentes</p>
-                  <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{statistics.pendente}</p>
+                  <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Pendentes</p>
+                  <p className="text-3xl font-bold text-yellow-900 dark:text-yellow-100">{statistics.pendente}</p>
                 </div>
-                <div className="h-12 w-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                <div className="h-12 w-12 bg-yellow-500 rounded-lg flex items-center justify-center">
                   <Clock className="w-6 h-6 text-white" />
                 </div>
               </div>
@@ -339,7 +347,7 @@ const AdminSolicitacoes = () => {
                               <Badge variant="outline" className="bg-scout-green/10 text-scout-green border-scout-green/20 text-xs">
                                 {request.grupo_escoteiro}
                               </Badge>
-                              <Badge variant={getStatusBadgeVariant(request.status)} className="text-xs">
+                              <Badge variant={getStatusBadgeVariant(request.status)} className={`text-xs ${getStatusBadgeClass(request.status)}`}>
                                 {getStatusLabel(request.status)}
                               </Badge>
                             </div>
@@ -466,11 +474,11 @@ const AdminSolicitacoes = () => {
                           <TableCell className="text-sm text-muted-foreground">
                             {formatDate(request.created_at)}
                           </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusBadgeVariant(request.status)}>
-                              {getStatusLabel(request.status)}
-                            </Badge>
-                          </TableCell>
+                           <TableCell>
+                             <Badge variant={getStatusBadgeVariant(request.status)} className={getStatusBadgeClass(request.status)}>
+                               {getStatusLabel(request.status)}
+                             </Badge>
+                           </TableCell>
                           {statusFilter === "pendente" && (
                             <TableCell>
                               <Button
