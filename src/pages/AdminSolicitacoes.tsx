@@ -308,9 +308,7 @@ const AdminSolicitacoes = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="w-5 h-5" />
-              {statusFilter === "todas" ? `Todas as Solicitações (${requests.length})` : 
-               statusFilter === "pendente" ? `Solicitações Pendentes (${requests.length})` :
-               `Solicitações Resolvidas (${requests.length})`}
+              Solicitações de Itens
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -413,81 +411,91 @@ const AdminSolicitacoes = () => {
                 </div>
 
                 {/* Desktop View - Table */}
-                <div className="hidden lg:block rounded-md border overflow-x-auto">
+                <div className="hidden lg:block rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="min-w-[150px]">Nome</TableHead>
-                        <TableHead className="min-w-[150px]">Grupo Escoteiro</TableHead>
-                        <TableHead className="min-w-[200px]">Contato</TableHead>
-                        <TableHead className="min-w-[200px]">Item Solicitado</TableHead>
-                        <TableHead className="text-center min-w-[100px]">Quantidade</TableHead>
-                        <TableHead className="min-w-[200px]">Mensagem</TableHead>
-                        <TableHead className="min-w-[150px]">Data</TableHead>
-                        <TableHead className="min-w-[100px]">Status</TableHead>
-                        {statusFilter === "pendente" && <TableHead className="min-w-[120px]">Ações</TableHead>}
+                        <TableHead className="w-[140px]">Nome</TableHead>
+                        <TableHead className="w-[120px]">Grupo</TableHead>
+                        <TableHead className="w-[200px]">Item Solicitado</TableHead>
+                        <TableHead className="w-[60px] text-center">Qtd</TableHead>
+                        <TableHead className="w-[180px]">Contato</TableHead>
+                        <TableHead className="w-[120px]">Data</TableHead>
+                        <TableHead className="w-[90px]">Status</TableHead>
+                        {statusFilter === "pendente" && <TableHead className="w-[100px]">Ações</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {requests.map((request) => (
                         <TableRow key={request.id} className="hover:bg-muted/50">
-                          <TableCell className="font-medium">
-                            {request.nome}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="bg-scout-green/10 text-scout-green border-scout-green/20">
-                                {request.grupo_escoteiro}
-                              </Badge>
+                          <TableCell className="font-medium p-3">
+                            <div className="max-w-[130px] truncate" title={request.nome}>
+                              {request.nome}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1 text-sm">
-                                <Mail className="w-3 h-3" />
-                                <span className="text-muted-foreground">{request.email}</span>
-                              </div>
-                              <div className="flex items-center gap-1 text-sm">
-                                <Phone className="w-3 h-3" />
-                                <span className="text-muted-foreground">{request.telefone}</span>
-                              </div>
+                          <TableCell className="p-3">
+                            <Badge variant="outline" className="bg-scout-green/10 text-scout-green border-scout-green/20 text-xs">
+                              {request.grupo_escoteiro}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-medium p-3">
+                            <div className="max-w-[180px] truncate" title={request.item_solicitado}>
+                              {request.item_solicitado}
                             </div>
                           </TableCell>
-                          <TableCell className="font-medium">
-                            {request.item_solicitado}
-                          </TableCell>
-                          <TableCell className="text-center font-semibold text-scout-green">
+                          <TableCell className="text-center font-semibold text-scout-green p-3">
                             {request.quantidade}
                           </TableCell>
-                          <TableCell>
-                            {request.mensagem_adicional ? (
-                              <div className="flex items-start gap-1">
-                                <MessageSquare className="w-3 h-3 mt-0.5 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground max-w-xs truncate">
-                                  {request.mensagem_adicional}
+                          <TableCell className="p-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1 text-xs">
+                                <Mail className="w-3 h-3 flex-shrink-0" />
+                                <span className="text-muted-foreground max-w-[140px] truncate" title={request.email}>
+                                  {request.email}
                                 </span>
                               </div>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
+                              <div className="flex items-center gap-1 text-xs">
+                                <Phone className="w-3 h-3 flex-shrink-0" />
+                                <span className="text-muted-foreground">{request.telefone}</span>
+                              </div>
+                              {request.mensagem_adicional && (
+                                <div className="flex items-center gap-1 text-xs">
+                                  <MessageSquare className="w-3 h-3 flex-shrink-0 text-muted-foreground" />
+                                  <span className="text-muted-foreground max-w-[140px] truncate" title={request.mensagem_adicional}>
+                                    {request.mensagem_adicional}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {formatDate(request.created_at)}
+                          <TableCell className="text-xs text-muted-foreground p-3">
+                            <div className="max-w-[110px]">
+                              {new Date(request.created_at).toLocaleDateString("pt-BR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "2-digit",
+                              })}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground/70">
+                              {new Date(request.created_at).toLocaleTimeString("pt-BR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </div>
                           </TableCell>
-                           <TableCell>
-                             <Badge variant={getStatusBadgeVariant(request.status)} className={getStatusBadgeClass(request.status)}>
-                               {getStatusLabel(request.status)}
-                             </Badge>
-                           </TableCell>
+                          <TableCell className="p-3">
+                            <Badge variant={getStatusBadgeVariant(request.status)} className={`text-xs ${getStatusBadgeClass(request.status)}`}>
+                              {getStatusLabel(request.status)}
+                            </Badge>
+                          </TableCell>
                           {statusFilter === "pendente" && (
-                            <TableCell>
+                            <TableCell className="p-3">
                               <Button
                                 onClick={() => markAsResolved(request.id)}
                                 size="sm"
-                                className="bg-scout-green hover:bg-scout-green/90"
+                                className="bg-scout-green hover:bg-scout-green/90 text-xs px-2 py-1 h-8"
                               >
-                                <CheckCircle className="w-4 h-4 mr-2" />
-                                Resolver
+                                <CheckCircle className="w-3 h-3" />
                               </Button>
                             </TableCell>
                           )}
