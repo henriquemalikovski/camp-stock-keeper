@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Send, ArrowLeft, Package, ShoppingCart, Search } from "lucide-react";
+import { Send, ArrowLeft, Package, ShoppingCart, Search, Plus, X } from "lucide-react";
 
 interface SelectedItem {
   id: string;
@@ -40,10 +40,21 @@ const SolicitarItem = () => {
 
   const [formData, setFormData] = useState({
     nome: "",
-    grupoEscoteiro: "",
+    grupoEscoteiro: "GE Arés 193",
     email: "",
     telefone: "",
     mensagemAdicional: "",
+  });
+
+  // State para itens customizados
+  const [customItems, setCustomItems] = useState<{
+    descricao: string;
+    quantidade: number;
+  }[]>([]);
+  const [showCustomItemForm, setShowCustomItemForm] = useState(false);
+  const [customItemForm, setCustomItemForm] = useState({
+    descricao: "",
+    quantidade: 1,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -171,6 +182,38 @@ const SolicitarItem = () => {
     return a.ramo.localeCompare(b.ramo);
   });
 
+  // Funções para itens customizados
+  const handleAddCustomItem = () => {
+    if (!customItemForm.descricao.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, descreva o item que deseja solicitar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCustomItems((prev) => [
+      ...prev,
+      {
+        descricao: customItemForm.descricao.trim(),
+        quantidade: customItemForm.quantidade,
+      },
+    ]);
+
+    setCustomItemForm({ descricao: "", quantidade: 1 });
+    setShowCustomItemForm(false);
+
+    toast({
+      title: "Item Adicionado",
+      description: "Item personalizado adicionado à sua solicitação.",
+    });
+  };
+
+  const handleRemoveCustomItem = (index: number) => {
+    setCustomItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -190,10 +233,10 @@ const SolicitarItem = () => {
         }
       }
 
-      if (selectedItems.length === 0) {
+      if (selectedItems.length === 0 && customItems.length === 0) {
         toast({
           title: "Erro de Validação",
-          description: "Por favor, selecione pelo menos um item.",
+          description: "Por favor, selecione pelo menos um item ou adicione um item personalizado.",
           variant: "destructive",
         });
         return;
@@ -211,7 +254,7 @@ const SolicitarItem = () => {
       }
 
       // Criar uma solicitação para cada item selecionado
-      const requests = selectedItems.map((item) => ({
+      const selectedRequests = selectedItems.map((item) => ({
         nome: formData.nome,
         grupo_escoteiro: formData.grupoEscoteiro,
         email: formData.email,
@@ -220,6 +263,19 @@ const SolicitarItem = () => {
         quantidade: item.quantidade,
         mensagem_adicional: formData.mensagemAdicional || null,
       }));
+
+      // Criar uma solicitação para cada item customizado
+      const customRequests = customItems.map((item) => ({
+        nome: formData.nome,
+        grupo_escoteiro: formData.grupoEscoteiro,
+        email: formData.email,
+        telefone: formData.telefone,
+        item_solicitado: `${item.descricao} (Item não cadastrado)`,
+        quantidade: item.quantidade,
+        mensagem_adicional: formData.mensagemAdicional || null,
+      }));
+
+      const requests = [...selectedRequests, ...customRequests];
 
       const { error } = await supabase.from("item_requests").insert(requests);
 
@@ -234,21 +290,23 @@ const SolicitarItem = () => {
         return;
       }
 
+      const totalItems = selectedItems.length + customItems.length;
       toast({
         title: "Solicitação Enviada",
-        description: `Sua solicitação de ${selectedItems.length} item(s) foi enviada com sucesso!`,
+        description: `Sua solicitação de ${totalItems} item(s) foi enviada com sucesso!`,
         className: "bg-scout-green text-white",
       });
 
       // Limpar formulário
       setFormData({
         nome: "",
-        grupoEscoteiro: "",
+        grupoEscoteiro: "GE Arés 193",
         email: "",
         telefone: "",
         mensagemAdicional: "",
       });
       setSelectedItems([]);
+      setCustomItems([]);
     } catch (error) {
       console.error("Erro inesperado:", error);
       toast({
@@ -508,12 +566,76 @@ const SolicitarItem = () => {
             </CardContent>
           </Card>
 
-          {/* Itens Selecionados - Fora do scroll */}
-          {selectedItems.length > 0 && (
+          {/* Item Personalizado */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Solicitar Item Não Cadastrado
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCustomItemForm(!showCustomItemForm)}
+                >
+                  {showCustomItemForm ? "Cancelar" : "Adicionar Item"}
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            {showCustomItemForm && (
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-2 space-y-2">
+                      <Label htmlFor="customItem">Descrição do Item</Label>
+                      <Input
+                        id="customItem"
+                        placeholder="Descreva o item que você precisa..."
+                        value={customItemForm.descricao}
+                        onChange={(e) =>
+                          setCustomItemForm((prev) => ({
+                            ...prev,
+                            descricao: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="customQty">Quantidade</Label>
+                      <Input
+                        id="customQty"
+                        type="number"
+                        min="1"
+                        value={customItemForm.quantidade}
+                        onChange={(e) =>
+                          setCustomItemForm((prev) => ({
+                            ...prev,
+                            quantidade: parseInt(e.target.value) || 1,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleAddCustomItem}
+                    className="w-full bg-scout-green hover:bg-scout-green-light"
+                  >
+                    Adicionar Item à Solicitação
+                  </Button>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Itens Selecionados */}
+          {(selectedItems.length > 0 || customItems.length > 0) && (
             <Card className="mb-8">
               <CardContent className="p-4 bg-scout-green/5 border border-scout-green/20">
                 <h4 className="font-medium text-scout-green mb-2">
-                  Itens Selecionados:
+                  Itens na Solicitação:
                 </h4>
                 <div className="space-y-2">
                   {selectedItems.map((item) => (
@@ -524,6 +646,24 @@ const SolicitarItem = () => {
                       </Badge>
                       <span className="text-xs text-muted-foreground">{item.tipo}</span>
                       <span className="text-muted-foreground">• Qtd: {item.quantidade}</span>
+                    </div>
+                  ))}
+                  {customItems.map((item, index) => (
+                    <div key={`custom-${index}`} className="text-sm flex flex-wrap items-center gap-2">
+                      <span className="font-medium">{item.descricao}</span>
+                      <Badge variant="outline" className="bg-orange-100 text-orange-800 text-xs">
+                        Item Personalizado
+                      </Badge>
+                      <span className="text-muted-foreground">• Qtd: {item.quantidade}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveCustomItem(index)}
+                        className="h-6 w-6 p-0 text-red-600 hover:text-red-800"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -611,14 +751,14 @@ const SolicitarItem = () => {
                 <div className="flex flex-col sm:flex-row gap-3 pt-6">
                   <Button
                     type="submit"
-                    disabled={isSubmitting || selectedItems.length === 0}
+                    disabled={isSubmitting || (selectedItems.length === 0 && customItems.length === 0)}
                     className="w-full sm:flex-1 bg-scout-green hover:bg-scout-green-light"
                   >
                     <Send className="w-4 h-4 mr-2" />
                     {isSubmitting
                       ? "Enviando..."
-                      : `Enviar Solicitação (${selectedItems.length} item${
-                          selectedItems.length !== 1 ? "s" : ""
+                      : `Enviar Solicitação (${selectedItems.length + customItems.length} item${
+                          (selectedItems.length + customItems.length) !== 1 ? "s" : ""
                         })`}
                   </Button>
 
