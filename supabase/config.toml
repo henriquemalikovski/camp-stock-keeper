@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.mongodb-requests]
 verify_jwt = false
+
+[functions.mongodb-setup]
+verify_jwt = false

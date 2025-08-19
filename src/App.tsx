@@ -9,6 +9,7 @@ import CadastroItem from "./pages/CadastroItem";
 import SolicitarItem from "./pages/SolicitarItem";
 import Auth from "./pages/Auth";
 import AdminSolicitacoes from "./pages/AdminSolicitacoes";
+import MongoDBSetup from "./pages/MongoDBSetup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/solicitar" element={<SolicitarItem />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin/solicitacoes" element={<AdminSolicitacoes />} />
+            <Route path="/setup" element={<MongoDBSetup />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

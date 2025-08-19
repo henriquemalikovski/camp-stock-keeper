@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { MongoClient } from "npm:mongodb@6.3.0";
+import { MongoClient, ObjectId } from "npm:mongodb@6.3.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -123,7 +123,7 @@ serve(async (req) => {
       };
 
       const result = await collection.updateOne(
-        { _id: new MongoClient.prototype.constructor.ObjectId(requestId) },
+        { _id: new ObjectId(requestId) },
         { $set: updateData }
       );
 

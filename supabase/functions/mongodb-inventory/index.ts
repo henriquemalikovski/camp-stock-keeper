@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { MongoClient } from "npm:mongodb@6.3.0";
+import { MongoClient, ObjectId } from "npm:mongodb@6.3.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -126,7 +126,7 @@ serve(async (req) => {
       };
 
       const result = await collection.updateOne(
-        { _id: new MongoClient.prototype.constructor.ObjectId(itemId) },
+        { _id: new ObjectId(itemId) },
         { $set: updateData }
       );
 
@@ -156,7 +156,7 @@ serve(async (req) => {
       console.log('Deleting inventory item:', itemId);
       
       const result = await collection.deleteOne({
-        _id: new MongoClient.prototype.constructor.ObjectId(itemId)
+        _id: new ObjectId(itemId)
       });
 
       if (result.deletedCount === 0) {
