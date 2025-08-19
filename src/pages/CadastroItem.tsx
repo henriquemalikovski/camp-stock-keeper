@@ -10,7 +10,7 @@ import {
   Tipo,
   Ramo,
 } from "@/types/inventory";
-import { supabase } from "@/integrations/supabase/client";
+import { mongoDBService } from "@/lib/mongodb";
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,17 +65,13 @@ const CadastroItem = () => {
   const loadItemForEdit = async (id: string) => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from("inventory_items")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error) {
-        console.error("Erro ao carregar item:", error);
+      const items = await mongoDBService.getInventoryItems();
+      const item = items.find(i => i.id === id);
+      
+      if (!item) {
         toast({
           title: "Erro ao Carregar",
-          description: "Não foi possível carregar o item para edição.",
+          description: "Item não encontrado para edição.",
           variant: "destructive",
         });
         navigate("/");
@@ -83,12 +79,12 @@ const CadastroItem = () => {
       }
 
       setFormData({
-        nivel: data.nivel as Nivel,
-        tipo: data.tipo as Tipo,
-        descricao: data.descricao,
-        quantidade: data.quantidade.toString(),
-        valorUnitario: data.valor_unitario.toString(),
-        ramo: data.ramo as Ramo,
+        nivel: item.nivel as Nivel,
+        tipo: item.tipo as Tipo,
+        descricao: item.descricao,
+        quantidade: item.quantidade.toString(),
+        valorUnitario: item.valorUnitario.toString(),
+        ramo: item.ramo as Ramo,
       });
     } catch (error) {
       console.error("Erro inesperado:", error);
@@ -173,38 +169,20 @@ const CadastroItem = () => {
         tipo: formData.tipo as Tipo,
         descricao: formData.descricao,
         quantidade,
-        valor_unitario: valorUnitario,
-        valor_total: valorTotal,
+        valorUnitario: valorUnitario,
+        valorTotal: valorTotal,
         ramo: formData.ramo as Ramo,
       };
 
-      // Salvar no Supabase
-      let data, error;
+      // Salvar no MongoDB
+      let savedItem;
       if (isEditing && editId) {
-        ({ data, error } = await supabase
-          .from("inventory_items")
-          .update(newItem)
-          .eq("id", editId)
-          .select());
+        savedItem = await mongoDBService.updateInventoryItem(editId, newItem);
       } else {
-        ({ data, error } = await supabase
-          .from("inventory_items")
-          .insert([newItem])
-          .select());
+        savedItem = await mongoDBService.createInventoryItem(newItem);
       }
 
-      if (error) {
-        console.error("Erro ao salvar no banco:", error);
-        toast({
-          title: "Erro ao Salvar",
-          description:
-            "Ocorreu um erro ao salvar no banco de dados: " + error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log("Item salvo no banco:", data);
+      console.log("Item salvo no banco:", savedItem);
 
       toast({
         title: isEditing ? "Item Atualizado" : "Item Cadastrado",

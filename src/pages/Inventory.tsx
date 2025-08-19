@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { InventoryItem, TIPOS, RAMOS, Nivel, Tipo, Ramo } from "@/types/inventory";
-import { supabase } from "@/integrations/supabase/client";
+import { mongoDBService } from "@/lib/mongodb";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/layout/Header";
 import { Input } from "@/components/ui/input";
@@ -63,34 +63,8 @@ const Inventory = () => {
   const loadItems = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("inventory_items")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Erro ao carregar itens:", error);
-        toast({
-          title: "Erro ao Carregar",
-          description: "Não foi possível carregar os itens do banco de dados.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Converter os dados do banco para o formato esperado
-      const formattedItems: InventoryItem[] = data.map((item) => ({
-        id: item.id,
-        nivel: item.nivel as Nivel,
-        tipo: item.tipo as Tipo,
-        descricao: item.descricao,
-        quantidade: item.quantidade,
-        valorUnitario: item.valor_unitario,
-        valorTotal: item.valor_total,
-        ramo: item.ramo as Ramo,
-      }));
-
-      setItems(formattedItems);
+      const items = await mongoDBService.getInventoryItems();
+      setItems(items);
     } catch (error) {
       console.error("Erro inesperado:", error);
       toast({
@@ -165,22 +139,7 @@ const Inventory = () => {
 
   const handleDelete = async (item: InventoryItem) => {
     try {
-      const { error } = await supabase
-        .from("inventory_items")
-        .delete()
-        .eq("id", item.id);
-
-      if (error) {
-        console.error("Erro ao excluir item:", error);
-        toast({
-          title: "Erro ao Excluir",
-          description: "Não foi possível excluir o item do banco de dados.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Remover da lista local
+      await mongoDBService.deleteInventoryItem(item.id);
       setItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
       toast({
         title: "Item Excluído",

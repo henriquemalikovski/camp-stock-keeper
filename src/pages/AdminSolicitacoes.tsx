@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { mongoDBService, type ItemRequest } from "@/lib/mongodb";
 import Header from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,18 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { ClipboardList, Phone, Mail, MessageSquare, CheckCircle, Filter, Clock, CheckCircle2, TrendingUp } from "lucide-react";
 
-interface ItemRequest {
-  id: string;
-  nome: string;
-  grupo_escoteiro: string;
-  email: string;
-  telefone: string;
-  item_solicitado: string;
-  quantidade: number;
-  mensagem_adicional: string | null;
-  created_at: string;
-  status: string;
-}
+// Interface agora importada do MongoDB service
 
 const AdminSolicitacoes = () => {
   const navigate = useNavigate();
@@ -58,29 +47,14 @@ const AdminSolicitacoes = () => {
     try {
       setLoading(true);
       
-      // Primeiro, buscar todas as solicitações para estatísticas
-      const { data: allData, error: allError } = await supabase
-        .from("item_requests")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (allError) {
-        console.error("Erro ao carregar todas as solicitações:", allError);
-        toast({
-          title: "Erro ao Carregar",
-          description: "Não foi possível carregar as solicitações.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setAllRequests(allData || []);
+      const allData = await mongoDBService.getItemRequests();
+      setAllRequests(allData);
 
       // Aplicar filtro para exibição
       if (statusFilter === "todas") {
-        setRequests(allData || []);
+        setRequests(allData);
       } else {
-        const filteredData = (allData || []).filter(request => request.status === statusFilter);
+        const filteredData = allData.filter(request => request.status === statusFilter);
         setRequests(filteredData);
       }
     } catch (error) {
@@ -97,27 +71,11 @@ const AdminSolicitacoes = () => {
 
   const markAsResolved = async (requestId: string) => {
     try {
-      const { error } = await supabase
-        .from("item_requests")
-        .update({ status: "resolvida" })
-        .eq("id", requestId);
-
-      if (error) {
-        console.error("Erro ao marcar como resolvida:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível marcar a solicitação como resolvida.",
-          variant: "destructive",
-        });
-        return;
-      }
-
+      await mongoDBService.updateItemRequestStatus(requestId, "resolvida");
       toast({
         title: "Sucesso",
         description: "Solicitação marcada como resolvida!",
       });
-
-      // Recarregar a lista para remover a solicitação resolvida
       loadRequests();
     } catch (error) {
       console.error("Erro inesperado:", error);

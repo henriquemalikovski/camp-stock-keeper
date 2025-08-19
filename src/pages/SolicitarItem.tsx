@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { InventoryItem, Tipo, Ramo, Nivel } from "@/types/inventory";
-import { supabase } from "@/integrations/supabase/client";
+import { mongoDBService } from "@/lib/mongodb";
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,33 +67,8 @@ const SolicitarItem = () => {
   const loadItems = async () => {
     try {
       setLoadingItems(true);
-      const { data, error } = await supabase
-        .from("inventory_items")
-        .select("*")
-        .order("descricao", { ascending: true });
-
-      if (error) {
-        console.error("Erro ao carregar itens:", error);
-        toast({
-          title: "Erro ao Carregar",
-          description: "Não foi possível carregar os itens disponíveis.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const formattedItems: InventoryItem[] = data.map((item) => ({
-        id: item.id,
-        nivel: item.nivel as Nivel,
-        tipo: item.tipo as Tipo,
-        descricao: item.descricao,
-        quantidade: item.quantidade,
-        valorUnitario: item.valor_unitario,
-        valorTotal: item.valor_total,
-        ramo: item.ramo as Ramo,
-      }));
-
-      setItems(formattedItems);
+      const items = await mongoDBService.getInventoryItems();
+      setItems(items.sort((a, b) => a.descricao.localeCompare(b.descricao)));
     } catch (error) {
       console.error("Erro inesperado:", error);
       toast({
@@ -277,17 +252,9 @@ const SolicitarItem = () => {
 
       const requests = [...selectedRequests, ...customRequests];
 
-      const { error } = await supabase.from("item_requests").insert(requests);
-
-      if (error) {
-        console.error("Erro ao salvar solicitação:", error);
-        toast({
-          title: "Erro ao Enviar",
-          description:
-            "Ocorreu um erro ao enviar sua solicitação: " + error.message,
-          variant: "destructive",
-        });
-        return;
+      // Criar as solicitações uma por uma no MongoDB
+      for (const request of requests) {
+        await mongoDBService.createItemRequest(request);
       }
 
       const totalItems = selectedItems.length + customItems.length;
