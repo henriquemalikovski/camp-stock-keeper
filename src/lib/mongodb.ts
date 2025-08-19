@@ -1,9 +1,8 @@
-// MongoDB Service - Conexão direta simples
+// MongoDB Service - API Backend
 import type { InventoryItem } from '@/types/inventory';
 
-// Para desenvolvimento local, use http://localhost:3001
-// Para produção, substitua pela URL do seu backend
-const API_BASE_URL = 'http://localhost:3001/api';
+// URL do backend - busca da variável de ambiente
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 interface ItemRequest {
   id?: string;
