@@ -1,7 +1,9 @@
-// MongoDB Service - Substitui as chamadas diretas ao Supabase
+// MongoDB Service - Conexão direta simples
 import type { InventoryItem } from '@/types/inventory';
 
-const MONGODB_BASE_URL = 'https://wxtuhsfmhtyaebffmmdm.supabase.co/functions/v1';
+// Para desenvolvimento local, use http://localhost:3001
+// Para produção, substitua pela URL do seu backend
+const API_BASE_URL = 'http://localhost:3001/api';
 
 interface ItemRequest {
   id?: string;
@@ -21,7 +23,7 @@ class MongoDBService {
   // Inventory Items
   async getInventoryItems(): Promise<InventoryItem[]> {
     try {
-      const response = await fetch(`${MONGODB_BASE_URL}/mongodb-inventory`, {
+      const response = await fetch(`${API_BASE_URL}/inventory`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -41,7 +43,7 @@ class MongoDBService {
 
   async createInventoryItem(item: Omit<InventoryItem, 'id'>): Promise<InventoryItem> {
     try {
-      const response = await fetch(`${MONGODB_BASE_URL}/mongodb-inventory`, {
+      const response = await fetch(`${API_BASE_URL}/inventory`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +64,7 @@ class MongoDBService {
 
   async updateInventoryItem(id: string, item: Partial<InventoryItem>): Promise<InventoryItem> {
     try {
-      const response = await fetch(`${MONGODB_BASE_URL}/mongodb-inventory?id=${id}`, {
+      const response = await fetch(`${API_BASE_URL}/inventory/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +85,7 @@ class MongoDBService {
 
   async deleteInventoryItem(id: string): Promise<void> {
     try {
-      const response = await fetch(`${MONGODB_BASE_URL}/mongodb-inventory?id=${id}`, {
+      const response = await fetch(`${API_BASE_URL}/inventory/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +104,7 @@ class MongoDBService {
   // Item Requests
   async getItemRequests(): Promise<ItemRequest[]> {
     try {
-      const response = await fetch(`${MONGODB_BASE_URL}/mongodb-requests`, {
+      const response = await fetch(`${API_BASE_URL}/requests`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -122,7 +124,7 @@ class MongoDBService {
 
   async createItemRequest(request: Omit<ItemRequest, 'id' | 'status' | 'created_at' | 'updated_at'>): Promise<ItemRequest> {
     try {
-      const response = await fetch(`${MONGODB_BASE_URL}/mongodb-requests`, {
+      const response = await fetch(`${API_BASE_URL}/requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,7 +145,7 @@ class MongoDBService {
 
   async updateItemRequestStatus(id: string, status: string): Promise<ItemRequest> {
     try {
-      const response = await fetch(`${MONGODB_BASE_URL}/mongodb-requests?id=${id}`, {
+      const response = await fetch(`${API_BASE_URL}/requests/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
